@@ -1,0 +1,22 @@
+{
+  "name": "spaceSimulatorGraph",
+  "authors": [
+    "Manel Bermudez <manel.bermudez@ivoox.com>"
+  ],
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "^3.4.0",
+    "bootstrap": "^4.3.1"
+  }
+}

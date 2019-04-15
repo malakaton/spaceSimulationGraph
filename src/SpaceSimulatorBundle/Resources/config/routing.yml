@@ -1,0 +1,3 @@
+space_simulator_homepage:
+    path:     /simulator
+    defaults: { _controller: SpaceSimulatorBundle:Simulation:index }
