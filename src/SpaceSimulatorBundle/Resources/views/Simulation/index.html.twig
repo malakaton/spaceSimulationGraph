@@ -1,11 +1,14 @@
 {% extends 'layout.html.twig' %}
+{% block header %}
+    <script src="{{ asset('bundles/spacesimulator/js/Simulation.js') }}"></script>
+{% endblock%}
 
 {% block content %}
     <div class="card text-center">
         <div class="card-body">
             <h5 class="card-title">Space Simulation</h5>
             <p class="card-text">Write graph about space simulation</p>
-            <a href="#" class="btn btn-primary">Go simulation</a>
+            <button type="button" class="btn btn-primary" id="js-goSimulation">Go Simulation</button>
         </div>
         <div class="card-footer text-muted">
             Powered by Malakatron!
