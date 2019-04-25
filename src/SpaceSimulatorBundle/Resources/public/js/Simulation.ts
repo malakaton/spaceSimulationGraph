@@ -19,7 +19,7 @@ window.onload = function() {
 function executeSimulation() {
     for (let _idx = 1; _idx <= numSimulations; _idx++) {
         let spaceSimulation:Simulation = {
-            idSimulation: 1,
+            idSimulation: getIdSimulationvAvailable(),
             num: _idx,
             cardinalPoint: randomCardinalPoint(),
             idTravel: randomIdTravel()
@@ -27,6 +27,10 @@ function executeSimulation() {
 
         console.log(spaceSimulation);
     }
+}
+
+function getIdSimulationvAvailable() {
+    return 1;
 }
 
 function randomIdTravel() {
