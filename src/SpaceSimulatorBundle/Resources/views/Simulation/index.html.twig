@@ -1,6 +1,9 @@
 {% extends 'layout.html.twig' %}
 {% block header %}
     <script src="{{ asset('bundles/spacesimulator/js/Simulation.js') }}"></script>
+    <script>
+        console.log(Routing.generate('get_last_history'));
+    </script>
 {% endblock%}
 
 {% block content %}

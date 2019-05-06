@@ -17,16 +17,17 @@ window.onload = function() {
 
 
 function executeSimulation() {
-    for (let _idx = 1; _idx <= numSimulations; _idx++) {
-        let spaceSimulation:Simulation = {
-            idSimulation: getIdSimulationvAvailable(),
-            num: _idx,
-            cardinalPoint: randomCardinalPoint(),
-            idTravel: randomIdTravel()
-        };
-
-        console.log(spaceSimulation);
-    }
+    getIdSimulationvAvailable();
+    // for (let _idx = 1; _idx <= numSimulations; _idx++) {
+    //     let spaceSimulation:Simulation = {
+    //         idSimulation: getIdSimulationvAvailable(),
+    //         num: _idx,
+    //         cardinalPoint: randomCardinalPoint(),
+    //         idTravel: randomIdTravel()
+    //     };
+    //
+    //     console.log(spaceSimulation);
+    // }
 }
 
 function getIdSimulationvAvailable() {
