@@ -95,3 +95,6 @@ ff936e,127.0.0.1,GET,http://spacegraph.simulator/app_dev.php/simulator,155542385
 fb39a1,127.0.0.1,GET,http://spacegraph.simulator/app_dev.php/simulator,1555424240,,200
 4e0ba6,127.0.0.1,GET,http://spacegraph.simulator/app_dev.php/simulator,1555424520,,200
 e8d497,127.0.0.1,GET,http://spacegraph.simulator/app_dev.php/simulator,1555424845,,200
+d40eec,127.0.0.1,GET,http://spacegraph.simulator/app_dev.php/simulator,1557149646,,200
+a9c5c3,127.0.0.1,GET,http://spacegraph.simulator/app_dev.php/js/routing?callback=fos.Router.setData,1557149646,,200
+898e7c,127.0.0.1,GET,http://spacegraph.simulator/app_dev.php/js/routing?callback=fos.Router.setData,1557149646,,200
