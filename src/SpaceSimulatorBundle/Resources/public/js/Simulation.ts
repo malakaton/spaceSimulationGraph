@@ -31,6 +31,7 @@ function executeSimulation() {
 }
 
 function getIdSimulationvAvailable() {
+    console.log(Routing.generate('get_last_history'));
     return 1;
 }
 
