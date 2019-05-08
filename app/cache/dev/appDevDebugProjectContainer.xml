@@ -113,8 +113,6 @@
     <parameter key="mailer_user">null</parameter>
     <parameter key="mailer_password">null</parameter>
     <parameter key="secret">7604901eec92b200c670c0bc73c01ff9</parameter>
-    <parameter key="database_driver">pdo_mysql</parameter>
-    <parameter key="database_path">null</parameter>
     <parameter key="locale">en</parameter>
     <parameter key="controller_resolver.class">Symfony\Bundle\FrameworkBundle\Controller\ControllerResolver</parameter>
     <parameter key="controller_name_converter.class">Symfony\Bundle\FrameworkBundle\Controller\ControllerNameParser</parameter>
@@ -1806,7 +1804,7 @@
       <argument type="collection">
         <argument type="service">
           <service class="Symfony\Component\Security\Core\Authentication\Provider\AnonymousAuthenticationProvider" public="false">
-            <argument>5cd037acc74c93.55394131</argument>
+            <argument>5cd3058f84e7f6.54283068</argument>
           </service>
         </argument>
       </argument>
@@ -1929,7 +1927,7 @@
         <argument type="service">
           <service class="Symfony\Component\Security\Http\Firewall\AnonymousAuthenticationListener" public="false">
             <argument type="service" id="security.token_storage"/>
-            <argument>5cd037acc74c93.55394131</argument>
+            <argument>5cd3058f84e7f6.54283068</argument>
             <argument type="service" id="monolog.logger.security" on-invalid="null"/>
             <argument type="service" id="security.authentication.manager"/>
           </service>

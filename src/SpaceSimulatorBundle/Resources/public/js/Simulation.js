@@ -25,6 +25,7 @@ function executeSimulation() {
     // }
 }
 function getIdSimulationvAvailable() {
+    //@ts-ignore
     console.log(Routing.generate('get_last_history'));
     return 1;
 }

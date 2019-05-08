@@ -10,5 +10,3 @@ parameters:
     mailer_user: null
     mailer_password: null
     secret: 7604901eec92b200c670c0bc73c01ff9
-    database_driver: pdo_mysql
-    database_path: null
