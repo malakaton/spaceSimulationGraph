@@ -5,6 +5,7 @@ var cardinalsPoint = [
     'East',
     'South',
 ];
+
 var maxIdLogs;
 window.onload = function () {
     var submitSimulation = document.getElementById('js-goSimulation');
@@ -14,35 +15,54 @@ window.onload = function () {
 };
 function executeSimulation() {
     for (var _idx = 1; _idx <= 1; _idx++) {
-        var spaceSimulation = {
-            idSimulation: getIdSimulationvAvailable(),
-            num: _idx,
-            cardinalPoint: randomCardinalPoint(),
-            idTravel: randomIdTravel()
-        };
-        console.log(spaceSimulation);
+        generateSimulation(_idx);
     }
 }
-function getIdSimulationvAvailable() {
-    //@ts-ignore
-    ajaxCalls(Routing.generate('get_last_history'));
-    console.log('1' + maxIdLogs);
-    return 1;
-}
-function ajaxCalls(url, param) {
-    if (param === void 0) { param = null; }
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', url);
-    xhr.onload = function () {
-        if (xhr.status === 200) {
-            maxIdLogs = JSON.parse(xhr.responseText);
+function generateSimulation(_idx) {
+    $.ajax({
+        url: Routing.generate('get_last_history'),
+        type: 'POST',
+        data: {},
+        dataType: 'json',
+        success: function (data) {
+            sendSimulationRequest(buildSimulationInterface(data.id, _idx));
+        },
+        error: function (request, error) {
+            alert("Request: " + JSON.stringify(request));
         }
-    };
-    xhr.send(param);
+    });
 }
+
+function sendSimulationRequest(spaceSimulation) {
+    $.ajax({
+        url: Routing.generate('send_simulation'),
+        type: 'POST',
+        data: {
+            simulator: spaceSimulation
+        },
+        dataType: 'json',
+        success: function (data) {
+
+        },
+        error: function (request, error) {
+            alert("Request: " + JSON.stringify(request));
+        }
+    });
+}
+
+function buildSimulationInterface(id, _idx) {
+    return {
+        idSimulation: id,
+        num: _idx,
+        cardinalPoint: randomCardinalPoint(),
+        idTravel: randomIdTravel()
+    };
+}
+
 function randomIdTravel() {
     return Math.floor(Math.random() * 20) + 10;
 }
+
 function randomCardinalPoint() {
     return cardinalsPoint[Math.floor(Math.random() * cardinalsPoint.length)];
 }

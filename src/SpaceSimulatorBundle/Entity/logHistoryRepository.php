@@ -18,4 +18,10 @@ class logHistoryRepository extends EntityRepository
 
         return $qb->getQuery()->getSingleResult();
     }
+
+    function save(logHistory $logEntity) {
+        $em = $this->getEntityManager();
+        $em->persist($logEntity);
+        $em->flush();
+    }
 }

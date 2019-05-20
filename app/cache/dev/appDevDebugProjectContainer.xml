@@ -19,6 +19,7 @@
       <parameter key="AppBundle">AppBundle\AppBundle</parameter>
       <parameter key="SpaceSimulatorBundle">SpaceSimulatorBundle\SpaceSimulatorBundle</parameter>
       <parameter key="FOSJsRoutingBundle">FOS\JsRoutingBundle\FOSJsRoutingBundle</parameter>
+      <parameter key="SncRedisBundle">Snc\RedisBundle\SncRedisBundle</parameter>
       <parameter key="DebugBundle">Symfony\Bundle\DebugBundle\DebugBundle</parameter>
       <parameter key="WebProfilerBundle">Symfony\Bundle\WebProfilerBundle\WebProfilerBundle</parameter>
       <parameter key="SensioDistributionBundle">Sensio\Bundle\DistributionBundle\SensioDistributionBundle</parameter>
@@ -79,6 +80,11 @@
         <parameter key="parent">null</parameter>
         <parameter key="path">/home/malakaton/phpProjects/spaceSimulationGraph/vendor/friendsofsymfony/jsrouting-bundle</parameter>
         <parameter key="namespace">FOS\JsRoutingBundle</parameter>
+      </parameter>
+      <parameter key="SncRedisBundle" type="collection">
+        <parameter key="parent">null</parameter>
+        <parameter key="path">/home/malakaton/phpProjects/spaceSimulationGraph/vendor/snc/redis-bundle</parameter>
+        <parameter key="namespace">Snc\RedisBundle</parameter>
       </parameter>
       <parameter key="DebugBundle" type="collection">
         <parameter key="parent">null</parameter>
@@ -593,6 +599,19 @@
     <parameter key="fos_js_routing.cache_control" type="collection">
       <parameter key="enabled">false</parameter>
     </parameter>
+    <parameter key="snc_redis.client.class">Predis\Client</parameter>
+    <parameter key="snc_redis.client_options.class">Predis\Configuration\Options</parameter>
+    <parameter key="snc_redis.connection_parameters.class">Predis\Connection\Parameters</parameter>
+    <parameter key="snc_redis.connection_factory.class">Snc\RedisBundle\Client\Predis\Connection\ConnectionFactory</parameter>
+    <parameter key="snc_redis.connection_wrapper.class">Snc\RedisBundle\Client\Predis\Connection\ConnectionWrapper</parameter>
+    <parameter key="snc_redis.phpredis_client.class">Redis</parameter>
+    <parameter key="snc_redis.phpredis_connection_wrapper.class">Snc\RedisBundle\Client\Phpredis\Client</parameter>
+    <parameter key="snc_redis.logger.class">Snc\RedisBundle\Logger\RedisLogger</parameter>
+    <parameter key="snc_redis.data_collector.class">Snc\RedisBundle\DataCollector\RedisDataCollector</parameter>
+    <parameter key="snc_redis.doctrine_cache_phpredis.class">Doctrine\Common\Cache\RedisCache</parameter>
+    <parameter key="snc_redis.doctrine_cache_predis.class">Doctrine\Common\Cache\PredisCache</parameter>
+    <parameter key="snc_redis.monolog_handler.class">Monolog\Handler\RedisHandler</parameter>
+    <parameter key="snc_redis.swiftmailer_spool.class">Snc\RedisBundle\SwiftMailer\RedisSpool</parameter>
     <parameter key="web_profiler.controller.profiler.class">Symfony\Bundle\WebProfilerBundle\Controller\ProfilerController</parameter>
     <parameter key="web_profiler.controller.router.class">Symfony\Bundle\WebProfilerBundle\Controller\RouterController</parameter>
     <parameter key="web_profiler.controller.exception.class">Symfony\Bundle\WebProfilerBundle\Controller\ExceptionController</parameter>
@@ -663,6 +682,10 @@
         <parameter>security</parameter>
         <parameter>@Security/Collector/security.html.twig</parameter>
       </parameter>
+      <parameter key="snc_redis.data_collector" type="collection">
+        <parameter>redis</parameter>
+        <parameter>@SncRedis/Collector/redis.html.twig</parameter>
+      </parameter>
       <parameter key="data_collector.dump" type="collection">
         <parameter>dump</parameter>
         <parameter>@Debug/Profiler/dump.html.twig</parameter>
@@ -671,6 +694,8 @@
     <parameter key="console.command.ids" type="collection">
       <parameter>fos_js_routing.dump_command</parameter>
       <parameter>fos_js_routing.router_debug_exposed_command</parameter>
+      <parameter>snc_redis.command.flush_all</parameter>
+      <parameter>snc_redis.command.flush_db</parameter>
       <parameter>sensio_distribution.security_checker.command</parameter>
     </parameter>
   </parameters>
@@ -1523,6 +1548,14 @@
         </argument>
       </call>
       <call method="add">
+        <argument type="service">
+          <service class="Snc\RedisBundle\DataCollector\RedisDataCollector" public="false">
+            <tag name="data_collector" template="@SncRedis/Collector/redis.html.twig" id="redis"/>
+            <argument type="service" id="snc_redis.logger"/>
+          </service>
+        </argument>
+      </call>
+      <call method="add">
         <argument type="service" id="data_collector.dump"/>
       </call>
     </service>
@@ -1804,7 +1837,7 @@
       <argument type="collection">
         <argument type="service">
           <service class="Symfony\Component\Security\Core\Authentication\Provider\AnonymousAuthenticationProvider" public="false">
-            <argument>5cd3058f84e7f6.54283068</argument>
+            <argument>5ce2d743cdb161.88119927</argument>
           </service>
         </argument>
       </argument>
@@ -1927,7 +1960,7 @@
         <argument type="service">
           <service class="Symfony\Component\Security\Http\Firewall\AnonymousAuthenticationListener" public="false">
             <argument type="service" id="security.token_storage"/>
-            <argument>5cd3058f84e7f6.54283068</argument>
+            <argument>5ce2d743cdb161.88119927</argument>
             <argument type="service" id="monolog.logger.security" on-invalid="null"/>
             <argument type="service" id="security.authentication.manager"/>
           </service>
@@ -2540,6 +2573,15 @@
       <argument type="service" id="security.token_storage" on-invalid="null"/>
       <argument type="service" id="security.authorization_checker" on-invalid="null"/>
     </service>
+    <service id="simulator_service" class="SpaceSimulatorBundle\Services\SimulatorService">
+      <argument type="service" id="log_history_repository"/>
+      <argument type="service" id="logger"/>
+      <argument type="service" id="service_container"/>
+    </service>
+    <service id="log_history_repository" class="SpaceSimulatorBundle\Entity\logHistoryRepository">
+      <argument>SpaceSimulatorBundle\Entity\logHistory</argument>
+      <factory service="doctrine.orm.default_entity_manager" method="getRepository"/>
+    </service>
     <service id="fos_js_routing.extractor" class="FOS\JsRoutingBundle\Extractor\ExposedRoutesExtractor">
       <argument type="service" id="router"/>
       <argument type="collection"/>
@@ -2556,6 +2598,7 @@
         <argument key="AppBundle">AppBundle\AppBundle</argument>
         <argument key="SpaceSimulatorBundle">SpaceSimulatorBundle\SpaceSimulatorBundle</argument>
         <argument key="FOSJsRoutingBundle">FOS\JsRoutingBundle\FOSJsRoutingBundle</argument>
+        <argument key="SncRedisBundle">Snc\RedisBundle\SncRedisBundle</argument>
         <argument key="DebugBundle">Symfony\Bundle\DebugBundle\DebugBundle</argument>
         <argument key="WebProfilerBundle">Symfony\Bundle\WebProfilerBundle\WebProfilerBundle</argument>
         <argument key="SensioDistributionBundle">Sensio\Bundle\DistributionBundle\SensioDistributionBundle</argument>
@@ -2598,6 +2641,72 @@
         <argument key="json" type="service">
           <service class="Symfony\Component\Serializer\Encoder\JsonEncoder" public="false"/>
         </argument>
+      </argument>
+    </service>
+    <service id="snc_redis.logger" class="Snc\RedisBundle\Logger\RedisLogger">
+      <tag name="monolog.logger" channel="snc_redis"/>
+      <argument type="service" id="monolog.logger.snc_redis" on-invalid="null"/>
+    </service>
+    <service id="snc_redis.command.flush_all" class="Snc\RedisBundle\Command\RedisFlushallCommand">
+      <tag name="console.command" command="redis:flushall"/>
+    </service>
+    <service id="snc_redis.command.flush_db" class="Snc\RedisBundle\Command\RedisFlushdbCommand">
+      <tag name="console.command" command="redis:flushdb"/>
+    </service>
+    <service id="snc_redis.default" class="Predis\Client">
+      <tag name="snc_redis.client" alias="default"/>
+      <argument type="service">
+        <service class="Predis\Connection\Parameters" public="false">
+          <tag name="snc_redis.connection_parameters" clientAlias="default"/>
+          <argument type="collection">
+            <argument key="read_write_timeout">null</argument>
+            <argument key="iterable_multibulk">false</argument>
+            <argument key="serialization">default</argument>
+            <argument key="profile">default</argument>
+            <argument key="prefix">null</argument>
+            <argument key="service">null</argument>
+            <argument key="async_connect">false</argument>
+            <argument key="timeout">5</argument>
+            <argument key="persistent">false</argument>
+            <argument key="exceptions">true</argument>
+            <argument key="logging">true</argument>
+            <argument key="alias">default</argument>
+          </argument>
+          <argument>Predis\Connection\Parameters</argument>
+          <argument>redis://localhost</argument>
+          <factory class="Snc\RedisBundle\Factory\PredisParametersFactory" method="create"/>
+        </service>
+      </argument>
+      <argument type="service">
+        <service class="Predis\Configuration\Options" public="false">
+          <argument type="collection">
+            <argument key="read_write_timeout">null</argument>
+            <argument key="iterable_multibulk">false</argument>
+            <argument key="serialization">default</argument>
+            <argument key="profile" type="service">
+              <service class="Predis\Profile\RedisVersion320" public="false"/>
+            </argument>
+            <argument key="prefix">null</argument>
+            <argument key="service">null</argument>
+            <argument key="async_connect">false</argument>
+            <argument key="timeout">5</argument>
+            <argument key="persistent">false</argument>
+            <argument key="exceptions">true</argument>
+            <argument key="connections" type="service">
+              <service class="Snc\RedisBundle\Client\Predis\Connection\ConnectionFactory" public="false">
+                <argument type="service">
+                  <service class="Predis\Profile\RedisVersion320" public="false"/>
+                </argument>
+                <call method="setConnectionWrapperClass">
+                  <argument>Snc\RedisBundle\Client\Predis\Connection\ConnectionWrapper</argument>
+                </call>
+                <call method="setLogger">
+                  <argument type="service" id="snc_redis.logger"/>
+                </call>
+              </service>
+            </argument>
+          </argument>
+        </service>
       </argument>
     </service>
     <service id="data_collector.dump" class="Symfony\Component\HttpKernel\DataCollector\DumpDataCollector">
@@ -2685,6 +2794,10 @@
         <argument key="data_collector.security" type="collection">
           <argument>security</argument>
           <argument>@Security/Collector/security.html.twig</argument>
+        </argument>
+        <argument key="snc_redis.data_collector" type="collection">
+          <argument>redis</argument>
+          <argument>@SncRedis/Collector/redis.html.twig</argument>
         </argument>
         <argument key="data_collector.dump" type="collection">
           <argument>dump</argument>
@@ -2840,6 +2953,18 @@
     </service>
     <service id="monolog.logger.doctrine" class="Symfony\Bridge\Monolog\Logger">
       <argument>doctrine</argument>
+      <call method="pushHandler">
+        <argument type="service" id="monolog.handler.main"/>
+      </call>
+      <call method="pushHandler">
+        <argument type="service" id="monolog.handler.debug"/>
+      </call>
+    </service>
+    <service id="monolog.logger.snc_redis" class="Symfony\Bridge\Monolog\Logger">
+      <argument>snc_redis</argument>
+      <call method="pushHandler">
+        <argument type="service" id="monolog.handler.console"/>
+      </call>
       <call method="pushHandler">
         <argument type="service" id="monolog.handler.main"/>
       </call>
@@ -3008,6 +3133,10 @@
         <argument>SpaceSimulator</argument>
       </call>
       <call method="addPath">
+        <argument>/home/malakaton/phpProjects/spaceSimulationGraph/vendor/snc/redis-bundle/Resources/views</argument>
+        <argument>SncRedis</argument>
+      </call>
+      <call method="addPath">
         <argument>/home/malakaton/phpProjects/spaceSimulationGraph/vendor/symfony/symfony/src/Symfony/Bundle/DebugBundle/Resources/views</argument>
         <argument>Debug</argument>
       </call>
@@ -3039,9 +3168,12 @@
     <service id="doctrine.orm.default_metadata_cache" alias="doctrine_cache.providers.doctrine.orm.default_metadata_cache"/>
     <service id="doctrine.orm.default_result_cache" alias="doctrine_cache.providers.doctrine.orm.default_result_cache"/>
     <service id="doctrine.orm.default_query_cache" alias="doctrine_cache.providers.doctrine.orm.default_query_cache"/>
+    <service id="snc_redis.default_client" alias="snc_redis.default"/>
     <service id="sensio.distribution.webconfigurator" alias="sensio_distribution.webconfigurator"/>
     <service id="console.command.fos_jsroutingbundle_command_dumpcommand" alias="fos_js_routing.dump_command"/>
     <service id="console.command.fos_jsroutingbundle_command_routerdebugexposedcommand" alias="fos_js_routing.router_debug_exposed_command"/>
+    <service id="console.command.snc_redisbundle_command_redisflushallcommand" alias="snc_redis.command.flush_all"/>
+    <service id="console.command.snc_redisbundle_command_redisflushdbcommand" alias="snc_redis.command.flush_db"/>
     <service id="console.command.sensiolabs_security_command_securitycheckercommand" alias="sensio_distribution.security_checker.command"/>
   </services>
 </container>

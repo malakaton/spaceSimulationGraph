@@ -131,6 +131,7 @@ class appDevDebugProjectContainer extends Container
             'http_kernel' => 'getHttpKernelService',
             'kernel' => 'getKernelService',
             'locale_listener' => 'getLocaleListenerService',
+            'log_history_repository' => 'getLogHistoryRepositoryService',
             'logger' => 'getLoggerService',
             'monolog.activation_strategy.not_found' => 'getMonolog_ActivationStrategy_NotFoundService',
             'monolog.handler.console' => 'getMonolog_Handler_ConsoleService',
@@ -146,6 +147,7 @@ class appDevDebugProjectContainer extends Container
             'monolog.logger.request' => 'getMonolog_Logger_RequestService',
             'monolog.logger.router' => 'getMonolog_Logger_RouterService',
             'monolog.logger.security' => 'getMonolog_Logger_SecurityService',
+            'monolog.logger.snc_redis' => 'getMonolog_Logger_SncRedisService',
             'monolog.logger.templating' => 'getMonolog_Logger_TemplatingService',
             'monolog.logger.translation' => 'getMonolog_Logger_TranslationService',
             'monolog.processor.psr_log_message' => 'getMonolog_Processor_PsrLogMessageService',
@@ -197,6 +199,11 @@ class appDevDebugProjectContainer extends Container
             'session.storage.native' => 'getSession_Storage_NativeService',
             'session.storage.php_bridge' => 'getSession_Storage_PhpBridgeService',
             'session_listener' => 'getSessionListenerService',
+            'simulator_service' => 'getSimulatorServiceService',
+            'snc_redis.command.flush_all' => 'getSncRedis_Command_FlushAllService',
+            'snc_redis.command.flush_db' => 'getSncRedis_Command_FlushDbService',
+            'snc_redis.default' => 'getSncRedis_DefaultService',
+            'snc_redis.logger' => 'getSncRedis_LoggerService',
             'streamed_response_listener' => 'getStreamedResponseListenerService',
             'swiftmailer.email_sender.listener' => 'getSwiftmailer_EmailSender_ListenerService',
             'swiftmailer.mailer.default' => 'getSwiftmailer_Mailer_DefaultService',
@@ -267,6 +274,8 @@ class appDevDebugProjectContainer extends Container
             'console.command.fos_jsroutingbundle_command_dumpcommand' => 'fos_js_routing.dump_command',
             'console.command.fos_jsroutingbundle_command_routerdebugexposedcommand' => 'fos_js_routing.router_debug_exposed_command',
             'console.command.sensiolabs_security_command_securitycheckercommand' => 'sensio_distribution.security_checker.command',
+            'console.command.snc_redisbundle_command_redisflushallcommand' => 'snc_redis.command.flush_all',
+            'console.command.snc_redisbundle_command_redisflushdbcommand' => 'snc_redis.command.flush_db',
             'database_connection' => 'doctrine.dbal.default_connection',
             'doctrine.orm.default_metadata_cache' => 'doctrine_cache.providers.doctrine.orm.default_metadata_cache',
             'doctrine.orm.default_query_cache' => 'doctrine_cache.providers.doctrine.orm.default_query_cache',
@@ -276,6 +285,7 @@ class appDevDebugProjectContainer extends Container
             'mailer' => 'swiftmailer.mailer.default',
             'sensio.distribution.webconfigurator' => 'sensio_distribution.webconfigurator',
             'session.storage' => 'session.storage.native',
+            'snc_redis.default_client' => 'snc_redis.default',
             'swiftmailer.mailer' => 'swiftmailer.mailer.default',
             'swiftmailer.plugin.messagelogger' => 'swiftmailer.mailer.default.plugin.messagelogger',
             'swiftmailer.spool' => 'swiftmailer.mailer.default.spool',
@@ -1418,7 +1428,7 @@ class appDevDebugProjectContainer extends Container
      */
     protected function getFosJsRouting_ExtractorService()
     {
-        return $this->services['fos_js_routing.extractor'] = new \FOS\JsRoutingBundle\Extractor\ExposedRoutesExtractor($this->get('router'), array(), __DIR__, array('FrameworkBundle' => 'Symfony\\Bundle\\FrameworkBundle\\FrameworkBundle', 'SecurityBundle' => 'Symfony\\Bundle\\SecurityBundle\\SecurityBundle', 'TwigBundle' => 'Symfony\\Bundle\\TwigBundle\\TwigBundle', 'MonologBundle' => 'Symfony\\Bundle\\MonologBundle\\MonologBundle', 'SwiftmailerBundle' => 'Symfony\\Bundle\\SwiftmailerBundle\\SwiftmailerBundle', 'AsseticBundle' => 'Symfony\\Bundle\\AsseticBundle\\AsseticBundle', 'DoctrineBundle' => 'Doctrine\\Bundle\\DoctrineBundle\\DoctrineBundle', 'SensioFrameworkExtraBundle' => 'Sensio\\Bundle\\FrameworkExtraBundle\\SensioFrameworkExtraBundle', 'AppBundle' => 'AppBundle\\AppBundle', 'SpaceSimulatorBundle' => 'SpaceSimulatorBundle\\SpaceSimulatorBundle', 'FOSJsRoutingBundle' => 'FOS\\JsRoutingBundle\\FOSJsRoutingBundle', 'DebugBundle' => 'Symfony\\Bundle\\DebugBundle\\DebugBundle', 'WebProfilerBundle' => 'Symfony\\Bundle\\WebProfilerBundle\\WebProfilerBundle', 'SensioDistributionBundle' => 'Sensio\\Bundle\\DistributionBundle\\SensioDistributionBundle', 'SensioGeneratorBundle' => 'Sensio\\Bundle\\GeneratorBundle\\SensioGeneratorBundle'));
+        return $this->services['fos_js_routing.extractor'] = new \FOS\JsRoutingBundle\Extractor\ExposedRoutesExtractor($this->get('router'), array(), __DIR__, array('FrameworkBundle' => 'Symfony\\Bundle\\FrameworkBundle\\FrameworkBundle', 'SecurityBundle' => 'Symfony\\Bundle\\SecurityBundle\\SecurityBundle', 'TwigBundle' => 'Symfony\\Bundle\\TwigBundle\\TwigBundle', 'MonologBundle' => 'Symfony\\Bundle\\MonologBundle\\MonologBundle', 'SwiftmailerBundle' => 'Symfony\\Bundle\\SwiftmailerBundle\\SwiftmailerBundle', 'AsseticBundle' => 'Symfony\\Bundle\\AsseticBundle\\AsseticBundle', 'DoctrineBundle' => 'Doctrine\\Bundle\\DoctrineBundle\\DoctrineBundle', 'SensioFrameworkExtraBundle' => 'Sensio\\Bundle\\FrameworkExtraBundle\\SensioFrameworkExtraBundle', 'AppBundle' => 'AppBundle\\AppBundle', 'SpaceSimulatorBundle' => 'SpaceSimulatorBundle\\SpaceSimulatorBundle', 'FOSJsRoutingBundle' => 'FOS\\JsRoutingBundle\\FOSJsRoutingBundle', 'SncRedisBundle' => 'Snc\\RedisBundle\\SncRedisBundle', 'DebugBundle' => 'Symfony\\Bundle\\DebugBundle\\DebugBundle', 'WebProfilerBundle' => 'Symfony\\Bundle\\WebProfilerBundle\\WebProfilerBundle', 'SensioDistributionBundle' => 'Sensio\\Bundle\\DistributionBundle\\SensioDistributionBundle', 'SensioGeneratorBundle' => 'Sensio\\Bundle\\GeneratorBundle\\SensioGeneratorBundle'));
     }
 
     /**
@@ -1586,6 +1596,19 @@ class appDevDebugProjectContainer extends Container
     protected function getLocaleListenerService()
     {
         return $this->services['locale_listener'] = new \Symfony\Component\HttpKernel\EventListener\LocaleListener('en', $this->get('router', ContainerInterface::NULL_ON_INVALID_REFERENCE), $this->get('request_stack'));
+    }
+
+    /**
+     * Gets the 'log_history_repository' service.
+     *
+     * This service is shared.
+     * This method always returns the same instance of the service.
+     *
+     * @return \SpaceSimulatorBundle\Entity\logHistoryRepository A SpaceSimulatorBundle\Entity\logHistoryRepository instance
+     */
+    protected function getLogHistoryRepositoryService()
+    {
+        return $this->services['log_history_repository'] = $this->get('doctrine.orm.default_entity_manager')->getRepository('SpaceSimulatorBundle\\Entity\\logHistory');
     }
 
     /**
@@ -1844,6 +1867,25 @@ class appDevDebugProjectContainer extends Container
     }
 
     /**
+     * Gets the 'monolog.logger.snc_redis' service.
+     *
+     * This service is shared.
+     * This method always returns the same instance of the service.
+     *
+     * @return \Symfony\Bridge\Monolog\Logger A Symfony\Bridge\Monolog\Logger instance
+     */
+    protected function getMonolog_Logger_SncRedisService()
+    {
+        $this->services['monolog.logger.snc_redis'] = $instance = new \Symfony\Bridge\Monolog\Logger('snc_redis');
+
+        $instance->pushHandler($this->get('monolog.handler.console'));
+        $instance->pushHandler($this->get('monolog.handler.main'));
+        $instance->pushHandler($this->get('monolog.handler.debug'));
+
+        return $instance;
+    }
+
+    /**
      * Gets the 'monolog.logger.templating' service.
      *
      * This service is shared.
@@ -1918,6 +1960,7 @@ class appDevDebugProjectContainer extends Container
         $instance->add($d);
         $instance->add(new \Symfony\Bundle\SwiftmailerBundle\DataCollector\MessageDataCollector($this));
         $instance->add(new \Symfony\Bundle\SecurityBundle\DataCollector\SecurityDataCollector($this->get('security.token_storage', ContainerInterface::NULL_ON_INVALID_REFERENCE), $this->get('security.role_hierarchy')));
+        $instance->add(new \Snc\RedisBundle\DataCollector\RedisDataCollector($this->get('snc_redis.logger')));
         $instance->add($this->get('data_collector.dump'));
 
         return $instance;
@@ -2154,7 +2197,7 @@ class appDevDebugProjectContainer extends Container
 
         $e = new \Symfony\Component\Security\Http\AccessMap();
 
-        return $this->services['security.firewall.map.context.main'] = new \Symfony\Bundle\SecurityBundle\Security\FirewallContext(array(0 => new \Symfony\Component\Security\Http\Firewall\ChannelListener($e, new \Symfony\Component\Security\Http\EntryPoint\RetryAuthenticationEntryPoint(80, 443), $a), 1 => new \Symfony\Component\Security\Http\Firewall\ContextListener($b, array(0 => new \Symfony\Component\Security\Core\User\InMemoryUserProvider()), 'main', $a, $this->get('debug.event_dispatcher', ContainerInterface::NULL_ON_INVALID_REFERENCE)), 2 => new \Symfony\Component\Security\Http\Firewall\AnonymousAuthenticationListener($b, '5cd3058f84e7f6.54283068', $a, $c), 3 => new \Symfony\Component\Security\Http\Firewall\AccessListener($b, $this->get('security.access.decision_manager'), $e, $c)), new \Symfony\Component\Security\Http\Firewall\ExceptionListener($b, $this->get('security.authentication.trust_resolver'), new \Symfony\Component\Security\Http\HttpUtils($d, $d), 'main', NULL, NULL, NULL, $a, false));
+        return $this->services['security.firewall.map.context.main'] = new \Symfony\Bundle\SecurityBundle\Security\FirewallContext(array(0 => new \Symfony\Component\Security\Http\Firewall\ChannelListener($e, new \Symfony\Component\Security\Http\EntryPoint\RetryAuthenticationEntryPoint(80, 443), $a), 1 => new \Symfony\Component\Security\Http\Firewall\ContextListener($b, array(0 => new \Symfony\Component\Security\Core\User\InMemoryUserProvider()), 'main', $a, $this->get('debug.event_dispatcher', ContainerInterface::NULL_ON_INVALID_REFERENCE)), 2 => new \Symfony\Component\Security\Http\Firewall\AnonymousAuthenticationListener($b, '5ce2d743cdb161.88119927', $a, $c), 3 => new \Symfony\Component\Security\Http\Firewall\AccessListener($b, $this->get('security.access.decision_manager'), $e, $c)), new \Symfony\Component\Security\Http\Firewall\ExceptionListener($b, $this->get('security.authentication.trust_resolver'), new \Symfony\Component\Security\Http\HttpUtils($d, $d), 'main', NULL, NULL, NULL, $a, false));
     }
 
     /**
@@ -2477,6 +2520,77 @@ class appDevDebugProjectContainer extends Container
     protected function getSessionListenerService()
     {
         return $this->services['session_listener'] = new \Symfony\Bundle\FrameworkBundle\EventListener\SessionListener($this);
+    }
+
+    /**
+     * Gets the 'simulator_service' service.
+     *
+     * This service is shared.
+     * This method always returns the same instance of the service.
+     *
+     * @return \SpaceSimulatorBundle\Services\SimulatorService A SpaceSimulatorBundle\Services\SimulatorService instance
+     */
+    protected function getSimulatorServiceService()
+    {
+        return $this->services['simulator_service'] = new \SpaceSimulatorBundle\Services\SimulatorService($this->get('log_history_repository'), $this->get('logger'), $this);
+    }
+
+    /**
+     * Gets the 'snc_redis.command.flush_all' service.
+     *
+     * This service is shared.
+     * This method always returns the same instance of the service.
+     *
+     * @return \Snc\RedisBundle\Command\RedisFlushallCommand A Snc\RedisBundle\Command\RedisFlushallCommand instance
+     */
+    protected function getSncRedis_Command_FlushAllService()
+    {
+        return $this->services['snc_redis.command.flush_all'] = new \Snc\RedisBundle\Command\RedisFlushallCommand();
+    }
+
+    /**
+     * Gets the 'snc_redis.command.flush_db' service.
+     *
+     * This service is shared.
+     * This method always returns the same instance of the service.
+     *
+     * @return \Snc\RedisBundle\Command\RedisFlushdbCommand A Snc\RedisBundle\Command\RedisFlushdbCommand instance
+     */
+    protected function getSncRedis_Command_FlushDbService()
+    {
+        return $this->services['snc_redis.command.flush_db'] = new \Snc\RedisBundle\Command\RedisFlushdbCommand();
+    }
+
+    /**
+     * Gets the 'snc_redis.default' service.
+     *
+     * This service is shared.
+     * This method always returns the same instance of the service.
+     *
+     * @return \Predis\Client A Predis\Client instance
+     */
+    protected function getSncRedis_DefaultService()
+    {
+        $a = new \Predis\Profile\RedisVersion320();
+
+        $b = new \Snc\RedisBundle\Client\Predis\Connection\ConnectionFactory($a);
+        $b->setConnectionWrapperClass('Snc\\RedisBundle\\Client\\Predis\\Connection\\ConnectionWrapper');
+        $b->setLogger($this->get('snc_redis.logger'));
+
+        return $this->services['snc_redis.default'] = new \Predis\Client(\Snc\RedisBundle\Factory\PredisParametersFactory::create(array('read_write_timeout' => NULL, 'iterable_multibulk' => false, 'serialization' => 'default', 'profile' => 'default', 'prefix' => NULL, 'service' => NULL, 'async_connect' => false, 'timeout' => 5, 'persistent' => false, 'exceptions' => true, 'logging' => true, 'alias' => 'default'), 'Predis\\Connection\\Parameters', 'redis://localhost'), new \Predis\Configuration\Options(array('read_write_timeout' => NULL, 'iterable_multibulk' => false, 'serialization' => 'default', 'profile' => $a, 'prefix' => NULL, 'service' => NULL, 'async_connect' => false, 'timeout' => 5, 'persistent' => false, 'exceptions' => true, 'connections' => $b)));
+    }
+
+    /**
+     * Gets the 'snc_redis.logger' service.
+     *
+     * This service is shared.
+     * This method always returns the same instance of the service.
+     *
+     * @return \Snc\RedisBundle\Logger\RedisLogger A Snc\RedisBundle\Logger\RedisLogger instance
+     */
+    protected function getSncRedis_LoggerService()
+    {
+        return $this->services['snc_redis.logger'] = new \Snc\RedisBundle\Logger\RedisLogger($this->get('monolog.logger.snc_redis', ContainerInterface::NULL_ON_INVALID_REFERENCE));
     }
 
     /**
@@ -3203,6 +3317,7 @@ class appDevDebugProjectContainer extends Container
         $instance->addPath(($this->targetDirs[3].'/vendor/symfony/swiftmailer-bundle/Resources/views'), 'Swiftmailer');
         $instance->addPath(($this->targetDirs[3].'/vendor/doctrine/doctrine-bundle/Resources/views'), 'Doctrine');
         $instance->addPath(($this->targetDirs[3].'/src/SpaceSimulatorBundle/Resources/views'), 'SpaceSimulator');
+        $instance->addPath(($this->targetDirs[3].'/vendor/snc/redis-bundle/Resources/views'), 'SncRedis');
         $instance->addPath(($this->targetDirs[3].'/vendor/symfony/symfony/src/Symfony/Bundle/DebugBundle/Resources/views'), 'Debug');
         $instance->addPath(($this->targetDirs[3].'/vendor/symfony/symfony/src/Symfony/Bundle/WebProfilerBundle/Resources/views'), 'WebProfiler');
         $instance->addPath(($this->targetDirs[3].'/vendor/sensio/distribution-bundle/Sensio/Bundle/DistributionBundle/Resources/views'), 'SensioDistribution');
@@ -3380,7 +3495,7 @@ class appDevDebugProjectContainer extends Container
      */
     protected function getWebProfiler_Controller_ProfilerService()
     {
-        return $this->services['web_profiler.controller.profiler'] = new \Symfony\Bundle\WebProfilerBundle\Controller\ProfilerController($this->get('router', ContainerInterface::NULL_ON_INVALID_REFERENCE), $this->get('profiler', ContainerInterface::NULL_ON_INVALID_REFERENCE), $this->get('twig'), array('data_collector.config' => array(0 => 'config', 1 => '@WebProfiler/Collector/config.html.twig'), 'data_collector.request' => array(0 => 'request', 1 => '@WebProfiler/Collector/request.html.twig'), 'data_collector.ajax' => array(0 => 'ajax', 1 => '@WebProfiler/Collector/ajax.html.twig'), 'data_collector.exception' => array(0 => 'exception', 1 => '@WebProfiler/Collector/exception.html.twig'), 'data_collector.events' => array(0 => 'events', 1 => '@WebProfiler/Collector/events.html.twig'), 'data_collector.logger' => array(0 => 'logger', 1 => '@WebProfiler/Collector/logger.html.twig'), 'data_collector.time' => array(0 => 'time', 1 => '@WebProfiler/Collector/time.html.twig'), 'data_collector.memory' => array(0 => 'memory', 1 => '@WebProfiler/Collector/memory.html.twig'), 'data_collector.router' => array(0 => 'router', 1 => '@WebProfiler/Collector/router.html.twig'), 'data_collector.form' => array(0 => 'form', 1 => '@WebProfiler/Collector/form.html.twig'), 'data_collector.twig' => array(0 => 'twig', 1 => '@WebProfiler/Collector/twig.html.twig'), 'data_collector.doctrine' => array(0 => 'db', 1 => '@Doctrine/Collector/db.html.twig'), 'swiftmailer.data_collector' => array(0 => 'swiftmailer', 1 => '@Swiftmailer/Collector/swiftmailer.html.twig'), 'data_collector.security' => array(0 => 'security', 1 => '@Security/Collector/security.html.twig'), 'data_collector.dump' => array(0 => 'dump', 1 => '@Debug/Profiler/dump.html.twig')), 'bottom');
+        return $this->services['web_profiler.controller.profiler'] = new \Symfony\Bundle\WebProfilerBundle\Controller\ProfilerController($this->get('router', ContainerInterface::NULL_ON_INVALID_REFERENCE), $this->get('profiler', ContainerInterface::NULL_ON_INVALID_REFERENCE), $this->get('twig'), array('data_collector.config' => array(0 => 'config', 1 => '@WebProfiler/Collector/config.html.twig'), 'data_collector.request' => array(0 => 'request', 1 => '@WebProfiler/Collector/request.html.twig'), 'data_collector.ajax' => array(0 => 'ajax', 1 => '@WebProfiler/Collector/ajax.html.twig'), 'data_collector.exception' => array(0 => 'exception', 1 => '@WebProfiler/Collector/exception.html.twig'), 'data_collector.events' => array(0 => 'events', 1 => '@WebProfiler/Collector/events.html.twig'), 'data_collector.logger' => array(0 => 'logger', 1 => '@WebProfiler/Collector/logger.html.twig'), 'data_collector.time' => array(0 => 'time', 1 => '@WebProfiler/Collector/time.html.twig'), 'data_collector.memory' => array(0 => 'memory', 1 => '@WebProfiler/Collector/memory.html.twig'), 'data_collector.router' => array(0 => 'router', 1 => '@WebProfiler/Collector/router.html.twig'), 'data_collector.form' => array(0 => 'form', 1 => '@WebProfiler/Collector/form.html.twig'), 'data_collector.twig' => array(0 => 'twig', 1 => '@WebProfiler/Collector/twig.html.twig'), 'data_collector.doctrine' => array(0 => 'db', 1 => '@Doctrine/Collector/db.html.twig'), 'swiftmailer.data_collector' => array(0 => 'swiftmailer', 1 => '@Swiftmailer/Collector/swiftmailer.html.twig'), 'data_collector.security' => array(0 => 'security', 1 => '@Security/Collector/security.html.twig'), 'snc_redis.data_collector' => array(0 => 'redis', 1 => '@SncRedis/Collector/redis.html.twig'), 'data_collector.dump' => array(0 => 'dump', 1 => '@Debug/Profiler/dump.html.twig')), 'bottom');
     }
 
     /**
@@ -3549,7 +3664,7 @@ class appDevDebugProjectContainer extends Container
      */
     protected function getSecurity_Authentication_ManagerService()
     {
-        $this->services['security.authentication.manager'] = $instance = new \Symfony\Component\Security\Core\Authentication\AuthenticationProviderManager(array(0 => new \Symfony\Component\Security\Core\Authentication\Provider\AnonymousAuthenticationProvider('5cd3058f84e7f6.54283068')), true);
+        $this->services['security.authentication.manager'] = $instance = new \Symfony\Component\Security\Core\Authentication\AuthenticationProviderManager(array(0 => new \Symfony\Component\Security\Core\Authentication\Provider\AnonymousAuthenticationProvider('5ce2d743cdb161.88119927')), true);
 
         $instance->setEventDispatcher($this->get('debug.event_dispatcher'));
 
@@ -3745,6 +3860,7 @@ class appDevDebugProjectContainer extends Container
                 'AppBundle' => 'AppBundle\\AppBundle',
                 'SpaceSimulatorBundle' => 'SpaceSimulatorBundle\\SpaceSimulatorBundle',
                 'FOSJsRoutingBundle' => 'FOS\\JsRoutingBundle\\FOSJsRoutingBundle',
+                'SncRedisBundle' => 'Snc\\RedisBundle\\SncRedisBundle',
                 'DebugBundle' => 'Symfony\\Bundle\\DebugBundle\\DebugBundle',
                 'WebProfilerBundle' => 'Symfony\\Bundle\\WebProfilerBundle\\WebProfilerBundle',
                 'SensioDistributionBundle' => 'Sensio\\Bundle\\DistributionBundle\\SensioDistributionBundle',
@@ -3805,6 +3921,11 @@ class appDevDebugProjectContainer extends Container
                     'parent' => NULL,
                     'path' => ($this->targetDirs[3].'/vendor/friendsofsymfony/jsrouting-bundle'),
                     'namespace' => 'FOS\\JsRoutingBundle',
+                ),
+                'SncRedisBundle' => array(
+                    'parent' => NULL,
+                    'path' => ($this->targetDirs[3].'/vendor/snc/redis-bundle'),
+                    'namespace' => 'Snc\\RedisBundle',
                 ),
                 'DebugBundle' => array(
                     'parent' => NULL,
@@ -4337,6 +4458,19 @@ class appDevDebugProjectContainer extends Container
             'fos_js_routing.cache_control' => array(
                 'enabled' => false,
             ),
+            'snc_redis.client.class' => 'Predis\\Client',
+            'snc_redis.client_options.class' => 'Predis\\Configuration\\Options',
+            'snc_redis.connection_parameters.class' => 'Predis\\Connection\\Parameters',
+            'snc_redis.connection_factory.class' => 'Snc\\RedisBundle\\Client\\Predis\\Connection\\ConnectionFactory',
+            'snc_redis.connection_wrapper.class' => 'Snc\\RedisBundle\\Client\\Predis\\Connection\\ConnectionWrapper',
+            'snc_redis.phpredis_client.class' => 'Redis',
+            'snc_redis.phpredis_connection_wrapper.class' => 'Snc\\RedisBundle\\Client\\Phpredis\\Client',
+            'snc_redis.logger.class' => 'Snc\\RedisBundle\\Logger\\RedisLogger',
+            'snc_redis.data_collector.class' => 'Snc\\RedisBundle\\DataCollector\\RedisDataCollector',
+            'snc_redis.doctrine_cache_phpredis.class' => 'Doctrine\\Common\\Cache\\RedisCache',
+            'snc_redis.doctrine_cache_predis.class' => 'Doctrine\\Common\\Cache\\PredisCache',
+            'snc_redis.monolog_handler.class' => 'Monolog\\Handler\\RedisHandler',
+            'snc_redis.swiftmailer_spool.class' => 'Snc\\RedisBundle\\SwiftMailer\\RedisSpool',
             'web_profiler.controller.profiler.class' => 'Symfony\\Bundle\\WebProfilerBundle\\Controller\\ProfilerController',
             'web_profiler.controller.router.class' => 'Symfony\\Bundle\\WebProfilerBundle\\Controller\\RouterController',
             'web_profiler.controller.exception.class' => 'Symfony\\Bundle\\WebProfilerBundle\\Controller\\ExceptionController',
@@ -4407,6 +4541,10 @@ class appDevDebugProjectContainer extends Container
                     0 => 'security',
                     1 => '@Security/Collector/security.html.twig',
                 ),
+                'snc_redis.data_collector' => array(
+                    0 => 'redis',
+                    1 => '@SncRedis/Collector/redis.html.twig',
+                ),
                 'data_collector.dump' => array(
                     0 => 'dump',
                     1 => '@Debug/Profiler/dump.html.twig',
@@ -4415,7 +4553,9 @@ class appDevDebugProjectContainer extends Container
             'console.command.ids' => array(
                 0 => 'fos_js_routing.dump_command',
                 1 => 'fos_js_routing.router_debug_exposed_command',
-                2 => 'sensio_distribution.security_checker.command',
+                2 => 'snc_redis.command.flush_all',
+                3 => 'snc_redis.command.flush_db',
+                4 => 'sensio_distribution.security_checker.command',
             ),
         );
     }

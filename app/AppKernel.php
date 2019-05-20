@@ -19,6 +19,7 @@ class AppKernel extends Kernel
             new AppBundle\AppBundle(),
             new SpaceSimulatorBundle\SpaceSimulatorBundle(),
             new FOS\JsRoutingBundle\FOSJsRoutingBundle(),
+            new Snc\RedisBundle\SncRedisBundle(),
         );
 
         if (in_array($this->getEnvironment(), array('dev', 'test'), true)) {

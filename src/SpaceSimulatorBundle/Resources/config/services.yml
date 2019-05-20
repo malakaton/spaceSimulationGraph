@@ -2,3 +2,21 @@ services:
 #    space_simulator.example:
 #        class: SpaceSimulatorBundle\Example
 #        arguments: [@service_id, "plain_value", %parameter%]
+
+  #######################################################################
+  ####                            Services                            ###
+  #######################################################################
+
+  simulator_service:
+    class: SpaceSimulatorBundle\Services\SimulatorService
+    arguments: [ @log_history_repository, @logger, @service_container ]
+
+  #######################################################################
+  ####                          Repositories                          ###
+  #######################################################################
+
+  log_history_repository:
+    class: SpaceSimulatorBundle\Entity\logHistoryRepository
+    factory: [@doctrine.orm.default_entity_manager, getRepository]
+    arguments:
+      - SpaceSimulatorBundle\Entity\logHistory

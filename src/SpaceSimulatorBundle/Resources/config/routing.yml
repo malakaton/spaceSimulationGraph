@@ -7,3 +7,9 @@ get_last_history:
     defaults: { _controller: SpaceSimulatorBundle:LogHistory:getLastHistoryRecord }
     options:
         expose: true
+
+send_simulation:
+    path:     /simulator/sendSimulation
+    defaults: { _controller: SpaceSimulatorBundle:Simulation:sendSimulation }
+    options:
+        expose: true

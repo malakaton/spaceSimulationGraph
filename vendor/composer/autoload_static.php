@@ -37,11 +37,13 @@ class ComposerStaticInit65e2fabacf8ad577a7f184ecb7664491
             'Symfony\\Bridge\\Monolog\\' => 23,
             'Symfony\\Bridge\\Doctrine\\' => 24,
             'SpaceSimulatorBundle\\' => 21,
+            'Snc\\RedisBundle\\' => 16,
             'Sensio\\Bundle\\FrameworkExtraBundle\\' => 35,
         ),
         'P' => 
         array (
             'Psr\\Log\\' => 8,
+            'Predis\\' => 7,
         ),
         'M' => 
         array (
@@ -124,6 +126,10 @@ class ComposerStaticInit65e2fabacf8ad577a7f184ecb7664491
         array (
             0 => __DIR__ . '/../..' . '/src/SpaceSimulatorBundle',
         ),
+        'Snc\\RedisBundle\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/snc/redis-bundle',
+        ),
         'Sensio\\Bundle\\FrameworkExtraBundle\\' => 
         array (
             0 => __DIR__ . '/..' . '/sensio/framework-extra-bundle',
@@ -131,6 +137,10 @@ class ComposerStaticInit65e2fabacf8ad577a7f184ecb7664491
         'Psr\\Log\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
+        ),
+        'Predis\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/predis/predis/src',
         ),
         'Monolog\\' => 
         array (
