@@ -12,4 +12,10 @@ use Doctrine\ORM\EntityRepository;
  */
 class logHistoryRepository extends EntityRepository
 {
+    function getLastID() {
+        $qb = $this->createQueryBuilder('l')
+                ->select('coalesce(MAX(l.id + 1), 1) AS idMax');
+
+        return $qb->getQuery()->getSingleResult();
+    }
 }
