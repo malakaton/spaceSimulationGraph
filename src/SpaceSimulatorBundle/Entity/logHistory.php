@@ -29,6 +29,13 @@ class logHistory
     private $idSimulation;
 
     /**
+     * @var string
+     *
+     * @ORM\Column(name="nameSimulator", type="string", length=255)
+     */
+    private $nameSimulator;
+
+    /**
      * @var integer
      *
      * @ORM\Column(name="num", type="integer")
@@ -84,6 +91,16 @@ class logHistory
     }
 
     /**
+     * Get nameSimulation
+     *
+     * @return string
+     */
+    public function getNameSimulation()
+    {
+        return $this->nameSimulator;
+    }
+
+    /**
      * Set num
      *
      * @param integer $num
@@ -92,6 +109,19 @@ class logHistory
     public function setNum($num)
     {
         $this->num = $num;
+
+        return $this;
+    }
+
+    /**
+     * Set nameSimulator
+     *
+     * @param string $nameSimulator
+     * @return logHistory
+     */
+    public function setNameSimulator($nameSimulator)
+    {
+        $this->nameSimulator = $nameSimulator;
 
         return $this;
     }

@@ -47,8 +47,31 @@ class SimulatorService
     public function addSimulationRequest($params) {
         try {
             $numRequest = $this->setCountCalls($this->getCountCalls() + 1);
-            $this->saveSimulationToHistory($params);
+            /**
+             * 10% de peticiones devuelven error
+             */
+            if ($numRequest >= 0 && $numRequest <= 6) {
+                $this->setDayRequests('fail');
+                throw new \Exception('Can execute 10% of requests');
+            }
+            $this->setDayRequests('success');
+            $logHistory = $this->saveSimulationToHistory($params);
             $this->saveLog($params);
+            /**
+             * El 10% de 60 es 6 , por lo tanto, 66 peticiones hay que recibir
+             *
+             */
+            $closed = ($numRequest === 66) ? true : false;
+            if ($closed) {
+                $this->setCountCalls(0);
+            }
+            $logRes = $this->getLogResults(self::SIMULATOR_NAME);
+
+            $res = array(
+                'id' => $logHistory->getId(),
+                'closed' => $closed,
+                'res' => $logRes
+            );
         } catch (\Exception $e) {
             $res = array(
                 'res' => 'ko',
@@ -62,12 +85,15 @@ class SimulatorService
     private function saveSimulationToHistory($params) {
         $logHistory = new logHistory();
 
+        $logHistory->setNameSimulator(self::SIMULATOR_NAME);
         $logHistory->setIdSimulation($params['idSimulation']);
         $logHistory->setCardinalPoint($params['cardinalPoint']);
         $logHistory->setNum($params['num']);
         $logHistory->setIdTravel($params['idTravel']);
 
         $this->log_history_repository->save($logHistory);
+
+        return $logHistory;
     }
 
     private function saveLog($params) {
@@ -110,5 +136,34 @@ class SimulatorService
         }
 
         return intval($num);
+    }
+
+    private function setDayRequests($type){
+        try {
+            $redis = $this->container->get('snc_redis.default');
+
+            $key = "count:day:" . $type;
+            $redis->incr($key);
+
+        } catch (\Exception $e) {
+            $this->logger->error('Redis error: ' . $e->getMessage());
+        }
+    }
+
+    private function getLogResults($simulatorName) {
+        try {
+            $res = $this->log_history_repository->findBy(
+                array('nameSimulator' => $simulatorName)
+            );
+        } catch (\Exception $e) {
+            $this->logger->error('Error: ' . $e->getMessage());
+
+            $res = array(
+                'res' => 'ko',
+                'msg' => $e->getMessage()
+            );
+        }
+
+        return $res;
     }
 }

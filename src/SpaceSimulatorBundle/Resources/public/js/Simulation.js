@@ -14,7 +14,7 @@ window.onload = function () {
     });
 };
 function executeSimulation() {
-    for (var _idx = 1; _idx <= 1; _idx++) {
+    for (var _idx = 1; _idx <= 2; _idx++) {
         generateSimulation(_idx);
     }
 }
@@ -42,7 +42,8 @@ function sendSimulationRequest(spaceSimulation) {
         },
         dataType: 'json',
         success: function (data) {
-
+            //showInfo(JSON.parse(data.result.res));
+            showInfo(data.result.res);
         },
         error: function (request, error) {
             alert("Request: " + JSON.stringify(request));
@@ -65,4 +66,10 @@ function randomIdTravel() {
 
 function randomCardinalPoint() {
     return cardinalsPoint[Math.floor(Math.random() * cardinalsPoint.length)];
+}
+
+function showInfo(results) {
+    for(let key in results) {
+        console.log(key);
+    }
 }
