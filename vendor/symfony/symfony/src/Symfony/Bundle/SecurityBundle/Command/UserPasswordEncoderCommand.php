@@ -105,7 +105,7 @@ EOF
 
                 return 1;
             }
-            $passwordQuestion = $this->createPasswordQuestion();
+            $passwordQuestion = $this->createPasswordQuestion($input, $output);
             $password = $output->askQuestion($passwordQuestion);
         }
 

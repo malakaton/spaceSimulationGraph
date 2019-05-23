@@ -42,7 +42,6 @@ class LanguageBundle extends LanguageDataProvider implements LanguageBundleInter
      * @param string                     $path
      * @param BundleEntryReaderInterface $reader
      * @param LocaleDataProvider         $localeProvider
-     * @param ScriptDataProvider         $scriptProvider
      */
     public function __construct($path, BundleEntryReaderInterface $reader, LocaleDataProvider $localeProvider, ScriptDataProvider $scriptProvider)
     {
@@ -81,7 +80,7 @@ class LanguageBundle extends LanguageDataProvider implements LanguageBundleInter
         try {
             return $this->getNames($displayLocale);
         } catch (MissingResourceException $e) {
-            return array();
+            return;
         }
     }
 
@@ -105,7 +104,7 @@ class LanguageBundle extends LanguageDataProvider implements LanguageBundleInter
         try {
             return $this->scriptProvider->getNames($displayLocale);
         } catch (MissingResourceException $e) {
-            return array();
+            return;
         }
     }
 
@@ -117,7 +116,7 @@ class LanguageBundle extends LanguageDataProvider implements LanguageBundleInter
         try {
             return $this->localeProvider->getLocales();
         } catch (MissingResourceException $e) {
-            return array();
+            return;
         }
     }
 }

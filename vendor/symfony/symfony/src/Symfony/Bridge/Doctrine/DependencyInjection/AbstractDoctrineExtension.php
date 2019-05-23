@@ -40,7 +40,7 @@ abstract class AbstractDoctrineExtension extends Extension
     protected $drivers = array();
 
     /**
-     * @param array            $objectManager A configured object manager
+     * @param array            $objectManager A configured object manager.
      * @param ContainerBuilder $container     A ContainerBuilder instance
      *
      * @throws \InvalidArgumentException
@@ -129,12 +129,11 @@ abstract class AbstractDoctrineExtension extends Extension
      */
     protected function setMappingDriverConfig(array $mappingConfig, $mappingName)
     {
-        $mappingDirectory = $mappingConfig['dir'];
-        if (!is_dir($mappingDirectory)) {
+        if (!is_dir($mappingConfig['dir'])) {
             throw new \InvalidArgumentException(sprintf('Invalid Doctrine mapping path given. Cannot load Doctrine mapping/bundle named "%s".', $mappingName));
         }
 
-        $this->drivers[$mappingConfig['type']][$mappingConfig['prefix']] = realpath($mappingDirectory) ?: $mappingDirectory;
+        $this->drivers[$mappingConfig['type']][$mappingConfig['prefix']] = realpath($mappingConfig['dir']);
     }
 
     /**
@@ -150,7 +149,7 @@ abstract class AbstractDoctrineExtension extends Extension
      */
     protected function getMappingDriverBundleConfigDefaults(array $bundleConfig, \ReflectionClass $bundle, ContainerBuilder $container)
     {
-        $bundleDir = dirname($bundle->getFileName());
+        $bundleDir = dirname($bundle->getFilename());
 
         if (!$bundleConfig['type']) {
             $bundleConfig['type'] = $this->detectMetadataDriver($bundleDir, $container);
@@ -253,7 +252,7 @@ abstract class AbstractDoctrineExtension extends Extension
             throw new \InvalidArgumentException(sprintf('Can only configure "xml", "yml", "annotation", "php" or '.
                 '"staticphp" through the DoctrineBundle. Use your own bundle to configure other metadata drivers. '.
                 'You can register them by adding a new driver to the '.
-                '"%s" service definition.', $this->getObjectManagerElementName($objectManagerName.'_metadata_driver')
+                '"%s" service definition.', $this->getObjectManagerElementName($objectManagerName.'.metadata_driver')
             ));
         }
     }
@@ -297,8 +296,8 @@ abstract class AbstractDoctrineExtension extends Extension
     /**
      * Loads a configured object manager metadata, query or result cache driver.
      *
-     * @param array            $objectManager A configured object manager
-     * @param ContainerBuilder $container     A ContainerBuilder instance
+     * @param array            $objectManager A configured object manager.
+     * @param ContainerBuilder $container     A ContainerBuilder instance.
      * @param string           $cacheName
      *
      * @throws \InvalidArgumentException In case of unknown driver type.
@@ -311,10 +310,10 @@ abstract class AbstractDoctrineExtension extends Extension
     /**
      * Loads a cache driver.
      *
-     * @param string           $cacheName         The cache driver name
-     * @param string           $objectManagerName The object manager name
-     * @param array            $cacheDriver       The cache driver mapping
-     * @param ContainerBuilder $container         The ContainerBuilder instance
+     * @param string                                                  $cacheDriverServiceId The cache driver name.
+     * @param string                                                  $objectManagerName    The object manager name.
+     * @param array                                                   $cacheDriver          The cache driver mapping.
+     * @param \Symfony\Component\DependencyInjection\ContainerBuilder $container            The ContainerBuilder instance.
      *
      * @return string
      *
@@ -333,7 +332,7 @@ abstract class AbstractDoctrineExtension extends Extension
                 $memcacheClass = !empty($cacheDriver['class']) ? $cacheDriver['class'] : '%'.$this->getObjectManagerElementName('cache.memcache.class').'%';
                 $memcacheInstanceClass = !empty($cacheDriver['instance_class']) ? $cacheDriver['instance_class'] : '%'.$this->getObjectManagerElementName('cache.memcache_instance.class').'%';
                 $memcacheHost = !empty($cacheDriver['host']) ? $cacheDriver['host'] : '%'.$this->getObjectManagerElementName('cache.memcache_host').'%';
-                $memcachePort = !empty($cacheDriver['port']) || (isset($cacheDriver['port']) && $cacheDriver['port'] === 0) ? $cacheDriver['port'] : '%'.$this->getObjectManagerElementName('cache.memcache_port').'%';
+                $memcachePort = !empty($cacheDriver['port']) || (isset($cacheDriver['port']) && $cacheDriver['port'] === 0)  ? $cacheDriver['port'] : '%'.$this->getObjectManagerElementName('cache.memcache_port').'%';
                 $cacheDef = new Definition($memcacheClass);
                 $memcacheInstance = new Definition($memcacheInstanceClass);
                 $memcacheInstance->addMethodCall('connect', array(
@@ -400,12 +399,12 @@ abstract class AbstractDoctrineExtension extends Extension
     /**
      * Returns a modified version of $managerConfigs.
      *
-     * The manager called $autoMappedManager will map all bundles that are not mapped by other managers.
+     * The manager called $autoMappedManager will map all bundles that are not mepped by other managers.
      *
      * @param array $managerConfigs
      * @param array $bundles
      *
-     * @return array The modified version of $managerConfigs
+     * @return array The modified version of $managerConfigs.
      */
     protected function fixManagersAutoMappings(array $managerConfigs, array $bundles)
     {

@@ -17,12 +17,11 @@ namespace Symfony\Component\Security\Acl\Permission;
 interface MaskBuilderInterface
 {
     /**
-     * Set the mask of this permission.
+     * Set the mask of this permission
      *
      * @param int $mask
      *
-     * @return $this
-     *
+     * @return MaskBuilderInterface
      * @throws \InvalidArgumentException if $mask is not an integer
      */
     public function set($mask);
@@ -39,7 +38,7 @@ interface MaskBuilderInterface
      *
      * @param mixed $mask
      *
-     * @return $this
+     * @return MaskBuilderInterface
      *
      * @throws \InvalidArgumentException
      */
@@ -50,7 +49,7 @@ interface MaskBuilderInterface
      *
      * @param mixed $mask
      *
-     * @return $this
+     * @return MaskBuilderInterface
      *
      * @throws \InvalidArgumentException
      */
@@ -59,12 +58,12 @@ interface MaskBuilderInterface
     /**
      * Resets the PermissionBuilder.
      *
-     * @return $this
+     * @return MaskBuilderInterface
      */
     public function reset();
 
     /**
-     * Returns the mask for the passed code.
+     * Returns the mask for the passed code
      *
      * @param mixed $code
      *

@@ -56,7 +56,7 @@ class MimeTypeGuesser implements MimeTypeGuesserInterface
     /**
      * Returns the singleton instance.
      *
-     * @return self
+     * @return MimeTypeGuesser
      */
     public static function getInstance()
     {
@@ -65,14 +65,6 @@ class MimeTypeGuesser implements MimeTypeGuesserInterface
         }
 
         return self::$instance;
-    }
-
-    /**
-     * Resets the singleton instance.
-     */
-    public static function reset()
-    {
-        self::$instance = null;
     }
 
     /**

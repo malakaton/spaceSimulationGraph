@@ -62,6 +62,7 @@ class SwitchUserTest extends WebTestCase
     {
         $client = $this->createClient(array('test_case' => 'StandardFormLogin', 'root_config' => 'switchuser.yml'));
         $client->followRedirects(true);
+        $client->insulate();
 
         $form = $client->request('GET', '/login')->selectButton('login')->form();
         $form['_username'] = $username;
@@ -69,5 +70,19 @@ class SwitchUserTest extends WebTestCase
         $client->submit($form);
 
         return $client;
+    }
+
+    protected function setUp()
+    {
+        parent::setUp();
+
+        $this->deleteTmpDir('StandardFormLogin');
+    }
+
+    protected function tearDown()
+    {
+        parent::tearDown();
+
+        $this->deleteTmpDir('StandardFormLogin');
     }
 }

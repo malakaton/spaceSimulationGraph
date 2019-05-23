@@ -11,11 +11,10 @@
 
 namespace Symfony\Component\Config\Tests;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\ConfigCache;
 use Symfony\Component\Config\Resource\FileResource;
 
-class ConfigCacheTest extends TestCase
+class ConfigCacheTest extends \PHPUnit_Framework_TestCase
 {
     private $resourceFile = null;
 
@@ -44,7 +43,7 @@ class ConfigCacheTest extends TestCase
         }
     }
 
-    public function testGetPath()
+    public function testToString()
     {
         $cache = new ConfigCache($this->cacheFile, true);
 
@@ -88,15 +87,6 @@ class ConfigCacheTest extends TestCase
     public function testCacheIsNotFreshIfOneOfTheResourcesIsNotFresh()
     {
         $this->makeCacheStale();
-
-        $cache = new ConfigCache($this->cacheFile, true);
-
-        $this->assertFalse($cache->isFresh());
-    }
-
-    public function testCacheIsNotFreshWhenUnserializeFails()
-    {
-        file_put_contents($this->metaFile, str_replace('FileResource', 'ClassNotHere', file_get_contents($this->metaFile)));
 
         $cache = new ConfigCache($this->cacheFile, true);
 

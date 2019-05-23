@@ -38,7 +38,7 @@ class DirectoryResource implements ResourceInterface, \Serializable
      */
     public function __toString()
     {
-        return md5(serialize(array($this->resource, $this->pattern)));
+        return (string) $this->resource;
     }
 
     /**
@@ -68,10 +68,7 @@ class DirectoryResource implements ResourceInterface, \Serializable
             return false;
         }
 
-        if ($timestamp < filemtime($this->resource)) {
-            return false;
-        }
-
+        $newestMTime = filemtime($this->resource);
         foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->resource), \RecursiveIteratorIterator::SELF_FIRST) as $file) {
             // if regex filtering is enabled only check matching files
             if ($this->pattern && $file->isFile() && !preg_match($this->pattern, $file->getBasename())) {
@@ -84,20 +81,10 @@ class DirectoryResource implements ResourceInterface, \Serializable
                 continue;
             }
 
-            // for broken links
-            try {
-                $fileMTime = $file->getMTime();
-            } catch (\RuntimeException $e) {
-                continue;
-            }
-
-            // early return if a file's mtime exceeds the passed timestamp
-            if ($timestamp < $fileMTime) {
-                return false;
-            }
+            $newestMTime = max($file->getMTime(), $newestMTime);
         }
 
-        return true;
+        return $newestMTime < $timestamp;
     }
 
     public function serialize()

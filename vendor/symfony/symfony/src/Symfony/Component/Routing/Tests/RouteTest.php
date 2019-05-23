@@ -11,10 +11,9 @@
 
 namespace Symfony\Component\Routing\Tests;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Routing\Route;
 
-class RouteTest extends TestCase
+class RouteTest extends \PHPUnit_Framework_TestCase
 {
     public function testConstructor()
     {
@@ -170,6 +169,8 @@ class RouteTest extends TestCase
      */
     public function testLegacySchemeRequirement()
     {
+        $this->iniSet('error_reporting', -1 & ~E_USER_DEPRECATED);
+
         $route = new Route('/');
         $route->setRequirement('_scheme', 'http|https');
         $this->assertEquals('http|https', $route->getRequirement('_scheme'));
@@ -198,6 +199,8 @@ class RouteTest extends TestCase
      */
     public function testLegacyMethodRequirement()
     {
+        $this->iniSet('error_reporting', -1 & ~E_USER_DEPRECATED);
+
         $route = new Route('/');
         $route->setRequirement('_method', 'GET|POST');
         $this->assertEquals('GET|POST', $route->getRequirement('_method'));
@@ -230,6 +233,8 @@ class RouteTest extends TestCase
      */
     public function testLegacyPattern()
     {
+        $this->iniSet('error_reporting', -1 & ~E_USER_DEPRECATED);
+
         $route = new Route('/{foo}');
         $this->assertEquals('/{foo}', $route->getPattern());
 

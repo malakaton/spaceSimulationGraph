@@ -11,13 +11,12 @@
 
 namespace Symfony\Component\Security\Core\Tests\Encoder;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Core\Encoder\BCryptPasswordEncoder;
 
 /**
  * @author Elnur Abdurrakhimov <elnur@elnur.pro>
  */
-class BCryptPasswordEncoderTest extends TestCase
+class BCryptPasswordEncoderTest extends \PHPUnit_Framework_TestCase
 {
     const PASSWORD = 'password';
     const BYTES = '0123456789abcdef';
@@ -39,20 +38,11 @@ class BCryptPasswordEncoderTest extends TestCase
         new BCryptPasswordEncoder(32);
     }
 
-    /**
-     * @dataProvider validRangeData
-     */
-    public function testCostInRange($cost)
+    public function testCostInRange()
     {
-        $this->assertInstanceOf('Symfony\Component\Security\Core\Encoder\BCryptPasswordEncoder', new BCryptPasswordEncoder($cost));
-    }
-
-    public function validRangeData()
-    {
-        $costs = range(4, 31);
-        array_walk($costs, function (&$cost) { $cost = array($cost); });
-
-        return $costs;
+        for ($cost = 4; $cost <= 31; ++$cost) {
+            new BCryptPasswordEncoder($cost);
+        }
     }
 
     public function testResultLength()
@@ -77,15 +67,13 @@ class BCryptPasswordEncoderTest extends TestCase
     {
         $encoder = new BCryptPasswordEncoder(self::VALID_COST);
 
-        $encoder->encodePassword(str_repeat('a', 73), 'salt');
+        $encoder->encodePassword(str_repeat('a', 5000), 'salt');
     }
 
     public function testCheckPasswordLength()
     {
         $encoder = new BCryptPasswordEncoder(self::VALID_COST);
-        $result = $encoder->encodePassword(str_repeat('a', 72), null);
 
-        $this->assertFalse($encoder->isPasswordValid($result, str_repeat('a', 73), 'salt'));
-        $this->assertTrue($encoder->isPasswordValid($result, str_repeat('a', 72), 'salt'));
+        $this->assertFalse($encoder->isPasswordValid('encoded', str_repeat('a', 5000), 'salt'));
     }
 }

@@ -1,27 +1,23 @@
 <?php
 
 /*
- * This file is part of the Symfony package.
- *
- * (c) Fabien Potencier <fabien@symfony.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
+* This file is part of the Symfony package.
+*
+* (c) Fabien Potencier <fabien@symfony.com>
+*
+* For the full copyright and license information, please view the LICENSE
+* file that was distributed with this source code.
+*/
 
 namespace Symfony\Component\Form\Tests\Extension\Validator;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
-use Symfony\Component\Validator\ValidatorInterface;
 
-class ValidatorExtensionTest extends TestCase
+class ValidatorExtensionTest extends \PHPUnit_Framework_TestCase
 {
     public function test2Dot5ValidationApi()
     {
-        $validator = $this->getMockBuilder('Symfony\Component\Validator\Validator\RecursiveValidator')
-            ->disableOriginalConstructor()
-            ->getMock();
+        $validator = $this->getMock('Symfony\Component\Validator\Validator\ValidatorInterface');
         $metadata = $this->getMockBuilder('Symfony\Component\Validator\Mapping\ClassMetadata')
             ->disableOriginalConstructor()
             ->getMock();
@@ -40,25 +36,16 @@ class ValidatorExtensionTest extends TestCase
             ->method('addPropertyConstraint')
             ->with('children', $this->isInstanceOf('Symfony\Component\Validator\Constraints\Valid'));
 
-        if ($validator instanceof ValidatorInterface) {
-            $validator
-                ->expects($this->never())
-                ->method('getMetadataFactory');
-        }
-
         $extension = new ValidatorExtension($validator);
         $guesser = $extension->loadTypeGuesser();
 
         $this->assertInstanceOf('Symfony\Component\Form\Extension\Validator\ValidatorTypeGuesser', $guesser);
     }
 
-    /**
-     * @group legacy
-     */
     public function test2Dot4ValidationApi()
     {
-        $factory = $this->getMockBuilder('Symfony\Component\Validator\MetadataFactoryInterface')->getMock();
-        $validator = $this->getMockBuilder('Symfony\Component\Validator\ValidatorInterface')->getMock();
+        $factory = $this->getMock('Symfony\Component\Validator\MetadataFactoryInterface');
+        $validator = $this->getMock('Symfony\Component\Validator\ValidatorInterface');
         $metadata = $this->getMockBuilder('Symfony\Component\Validator\Mapping\ClassMetadata')
             ->disableOriginalConstructor()
             ->getMock();
@@ -89,7 +76,6 @@ class ValidatorExtensionTest extends TestCase
 
     /**
      * @expectedException \Symfony\Component\Form\Exception\UnexpectedTypeException
-     * @group legacy
      */
     public function testInvalidValidatorInterface()
     {

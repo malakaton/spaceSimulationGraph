@@ -11,13 +11,12 @@
 
 namespace Symfony\Component\Security\Csrf\Tests\TokenStorage;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Csrf\TokenStorage\SessionTokenStorage;
 
 /**
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class SessionTokenStorageTest extends TestCase
+class SessionTokenStorageTest extends \PHPUnit_Framework_TestCase
 {
     const SESSION_NAMESPACE = 'foobar';
 
@@ -33,6 +32,10 @@ class SessionTokenStorageTest extends TestCase
 
     protected function setUp()
     {
+        if (!interface_exists('Symfony\Component\HttpFoundation\Session\SessionInterface')) {
+            $this->markTestSkipped('The "HttpFoundation" component is not available');
+        }
+
         $this->session = $this->getMockBuilder('Symfony\Component\HttpFoundation\Session\SessionInterface')
             ->disableOriginalConstructor()
             ->getMock();

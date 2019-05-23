@@ -11,14 +11,13 @@
 
 namespace Symfony\Component\Templating\Tests\Loader;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Templating\Loader\Loader;
 use Symfony\Component\Templating\Loader\CacheLoader;
 use Symfony\Component\Templating\Storage\StringStorage;
 use Symfony\Component\Templating\TemplateReferenceInterface;
 use Symfony\Component\Templating\TemplateReference;
 
-class CacheLoaderTest extends TestCase
+class CacheLoaderTest extends \PHPUnit_Framework_TestCase
 {
     public function testConstructor()
     {
@@ -29,13 +28,13 @@ class CacheLoaderTest extends TestCase
 
     public function testLoad()
     {
-        $dir = sys_get_temp_dir().DIRECTORY_SEPARATOR.mt_rand(111111, 999999);
+        $dir = sys_get_temp_dir().DIRECTORY_SEPARATOR.rand(111111, 999999);
         mkdir($dir, 0777, true);
 
         $loader = new ProjectTemplateLoader($varLoader = new ProjectTemplateLoaderVar(), $dir);
         $this->assertFalse($loader->load(new TemplateReference('foo', 'php')), '->load() returns false if the embed loader is not able to load the template');
 
-        $logger = $this->getMockBuilder('Psr\Log\LoggerInterface')->getMock();
+        $logger = $this->getMock('Psr\Log\LoggerInterface');
         $logger
             ->expects($this->once())
             ->method('debug')
@@ -43,7 +42,7 @@ class CacheLoaderTest extends TestCase
         $loader->setLogger($logger);
         $loader->load(new TemplateReference('index'));
 
-        $logger = $this->getMockBuilder('Psr\Log\LoggerInterface')->getMock();
+        $logger = $this->getMock('Psr\Log\LoggerInterface');
         $logger
             ->expects($this->once())
             ->method('debug')

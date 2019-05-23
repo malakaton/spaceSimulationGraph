@@ -46,12 +46,11 @@ class ControllerNameParser
      */
     public function parse($controller)
     {
-        $parts = explode(':', $controller);
-        if (3 !== count($parts) || in_array('', $parts, true)) {
+        $originalController = $controller;
+        if (3 !== count($parts = explode(':', $controller))) {
             throw new \InvalidArgumentException(sprintf('The "%s" controller is not a valid "a:b:c" controller string.', $controller));
         }
 
-        $originalController = $controller;
         list($bundle, $controller, $action) = $parts;
         $controller = str_replace('/', '\\', $controller);
         $bundles = array();
@@ -120,7 +119,7 @@ class ControllerNameParser
     }
 
     /**
-     * Attempts to find a bundle that is *similar* to the given bundle name.
+     * Attempts to find a bundle that is *similar* to the given bundle name
      *
      * @param string $nonExistentBundleName
      *
@@ -143,7 +142,6 @@ class ControllerNameParser
             $lev = levenshtein($nonExistentBundleName, $bundleName);
             if ($lev <= strlen($nonExistentBundleName) / 3 && ($alternative === null || $lev < $shortest)) {
                 $alternative = $bundleName;
-                $shortest = $lev;
             }
         }
 

@@ -13,12 +13,18 @@ namespace Symfony\Bundle\TwigBundle\Tests\Extension;
 
 use Symfony\Bundle\TwigBundle\Extension\AssetsExtension;
 use Symfony\Bundle\TwigBundle\Tests\TestCase;
+use Symfony\Component\Routing\RequestContext;
 
 /**
  * @group legacy
  */
 class LegacyAssetsExtensionTest extends TestCase
 {
+    protected function setUp()
+    {
+        $this->iniSet('error_reporting', -1 & ~E_USER_DEPRECATED);
+    }
+
     /**
      * @dataProvider provideGetAssetUrlArguments
      */
@@ -84,7 +90,7 @@ class LegacyAssetsExtensionTest extends TestCase
 
     private function createContainerMock($helper)
     {
-        $container = $this->getMockBuilder('Symfony\Component\DependencyInjection\ContainerInterface')->getMock();
+        $container = $this->getMock('Symfony\Component\DependencyInjection\ContainerInterface');
         $container->expects($this->any())
             ->method('get')
             ->with('templating.helper.assets')

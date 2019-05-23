@@ -13,7 +13,6 @@ namespace Symfony\Bridge\ProxyManager\Tests\LazyProxy;
 
 require_once __DIR__.'/Fixtures/includes/foo.php';
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\ProxyManager\LazyProxy\Instantiator\RuntimeInstantiator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
@@ -23,8 +22,11 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
  *
  * @author Marco Pivetta <ocramius@gmail.com>
  */
-class ContainerBuilderTest extends TestCase
+class ContainerBuilderTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @covers Symfony\Component\DependencyInjection\ContainerBuilder::createService
+     */
     public function testCreateProxyServiceWithRuntimeInstantiator()
     {
         $builder = new ContainerBuilder();
@@ -33,8 +35,6 @@ class ContainerBuilderTest extends TestCase
 
         $builder->register('foo1', 'ProxyManagerBridgeFooClass')->setFile(__DIR__.'/Fixtures/includes/foo.php');
         $builder->getDefinition('foo1')->setLazy(true);
-
-        $builder->compile();
 
         /* @var $foo1 \ProxyManager\Proxy\LazyLoadingInterface|\ProxyManager\Proxy\ValueHolderInterface */
         $foo1 = $builder->get('foo1');

@@ -11,16 +11,14 @@
 
 namespace Symfony\Component\Validator\Tests\Constraints;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Constraints\File;
-use Symfony\Component\Validator\Exception\ConstraintDefinitionException;
 
-class FileTest extends TestCase
+class FileTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @param mixed $maxSize
-     * @param int   $bytes
-     * @param bool  $binaryFormat
+     * @param int   bytes
+     * @param bool  $bytes
      * @dataProvider provideValidSizes
      */
     public function testMaxSize($maxSize, $bytes, $binaryFormat)
@@ -32,54 +30,10 @@ class FileTest extends TestCase
     }
 
     /**
-     * @dataProvider provideValidSizes
-     *
-     * @param int|string $maxSize
-     * @param int        $bytes
-     * @param string     $binaryFormat
-     */
-    public function testMaxSizeCanBeSetAfterInitialization($maxSize, $bytes, $binaryFormat)
-    {
-        $file = new File();
-        $file->maxSize = $maxSize;
-
-        $this->assertSame($bytes, $file->maxSize);
-        $this->assertSame($binaryFormat, $file->binaryFormat);
-    }
-
-    /**
-     * @dataProvider provideInvalidSizes
-     * @expectedException \Symfony\Component\Validator\Exception\ConstraintDefinitionException
-     *
-     * @param int|string $maxSize
-     */
-    public function testInvalidValueForMaxSizeThrowsExceptionAfterInitialization($maxSize)
-    {
-        $file = new File(array('maxSize' => 1000));
-        $file->maxSize = $maxSize;
-    }
-
-    /**
-     * @dataProvider provideInvalidSizes
-     *
-     * @param int|string $maxSize
-     */
-    public function testMaxSizeCannotBeSetToInvalidValueAfterInitialization($maxSize)
-    {
-        $file = new File(array('maxSize' => 1000));
-
-        try {
-            $file->maxSize = $maxSize;
-        } catch (ConstraintDefinitionException $e) {
-        }
-
-        $this->assertSame(1000, $file->maxSize);
-    }
-
-    /**
      * @param mixed $maxSize
+     * @param int   $bytes
      * @dataProvider provideInValidSizes
-     * @expectedException \Symfony\Component\Validator\Exception\ConstraintDefinitionException
+     * @expectedException Symfony\Component\Validator\Exception\ConstraintDefinitionException
      */
     public function testInvalideMaxSize($maxSize)
     {

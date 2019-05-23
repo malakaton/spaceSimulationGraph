@@ -11,14 +11,13 @@
 
 namespace Symfony\Component\Security\Acl\Tests\Domain;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Acl\Domain\UserSecurityIdentity;
 use Symfony\Component\Security\Acl\Domain\RoleSecurityIdentity;
 use Symfony\Component\Security\Acl\Domain\PermissionGrantingStrategy;
 use Symfony\Component\Security\Acl\Domain\ObjectIdentity;
 use Symfony\Component\Security\Acl\Domain\Acl;
 
-class AclTest extends TestCase
+class AclTest extends \PHPUnit_Framework_TestCase
 {
     public function testConstructor()
     {
@@ -209,7 +208,7 @@ class AclTest extends TestCase
     {
         $sids = array(new RoleSecurityIdentity('ROLE_FOO'), new RoleSecurityIdentity('ROLE_IDDQD'));
         $masks = array(1, 2, 4);
-        $strategy = $this->getMockBuilder('Symfony\Component\Security\Acl\Model\PermissionGrantingStrategyInterface')->getMock();
+        $strategy = $this->getMock('Symfony\Component\Security\Acl\Model\PermissionGrantingStrategyInterface');
         $acl = new Acl(1, new ObjectIdentity(1, 'foo'), $strategy, array(), true);
 
         $strategy
@@ -226,7 +225,7 @@ class AclTest extends TestCase
     {
         $sids = array(new RoleSecurityIdentity('ROLE_FOO'), new RoleSecurityIdentity('ROLE_IDDQD'));
         $masks = array(1, 2, 4);
-        $strategy = $this->getMockBuilder('Symfony\Component\Security\Acl\Model\PermissionGrantingStrategyInterface')->getMock();
+        $strategy = $this->getMock('Symfony\Component\Security\Acl\Model\PermissionGrantingStrategyInterface');
         $acl = new Acl(1, new ObjectIdentity(1, 'foo'), $strategy, array(), true);
 
         $strategy
@@ -489,7 +488,7 @@ class AclTest extends TestCase
     {
         $aceProperties = array('aceOrder', 'mask', 'strategy', 'auditSuccess', 'auditFailure');
 
-        $listener = $this->getMockBuilder('Doctrine\Common\PropertyChangedListener')->getMock();
+        $listener = $this->getMock('Doctrine\Common\PropertyChangedListener');
         foreach ($expectedChanges as $index => $property) {
             if (in_array($property, $aceProperties)) {
                 $class = 'Symfony\Component\Security\Acl\Domain\Entry';

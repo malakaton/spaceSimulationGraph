@@ -11,17 +11,13 @@
 
 namespace Symfony\Component\Security\Acl\Tests\Dbal;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Acl\Dbal\AclProvider;
 use Symfony\Component\Security\Acl\Domain\PermissionGrantingStrategy;
 use Symfony\Component\Security\Acl\Domain\ObjectIdentity;
 use Symfony\Component\Security\Acl\Dbal\Schema;
 use Doctrine\DBAL\DriverManager;
 
-/**
- * @requires extension pdo_sqlite
- */
-class AclProviderTest extends TestCase
+class AclProviderTest extends \PHPUnit_Framework_TestCase
 {
     protected $con;
     protected $insertClassStmt;
@@ -49,11 +45,11 @@ class AclProviderTest extends TestCase
             $this->getProvider()->findAcls($oids);
 
             $this->fail('Provider did not throw an expected exception.');
-        } catch (\Exception $e) {
-            $this->assertInstanceOf('Symfony\Component\Security\Acl\Exception\AclNotFoundException', $e);
-            $this->assertInstanceOf('Symfony\Component\Security\Acl\Exception\NotAllAclsFoundException', $e);
+        } catch (\Exception $ex) {
+            $this->assertInstanceOf('Symfony\Component\Security\Acl\Exception\AclNotFoundException', $ex);
+            $this->assertInstanceOf('Symfony\Component\Security\Acl\Exception\NotAllAclsFoundException', $ex);
 
-            $partialResult = $e->getPartialResult();
+            $partialResult = $ex->getPartialResult();
             $this->assertTrue($partialResult->contains($oids[0]));
             $this->assertFalse($partialResult->contains($oids[1]));
         }
@@ -145,6 +141,10 @@ class AclProviderTest extends TestCase
 
     protected function setUp()
     {
+        if (!class_exists('PDO') || !in_array('sqlite', \PDO::getAvailableDrivers())) {
+            self::markTestSkipped('This test requires SQLite support in your environment');
+        }
+
         $this->con = DriverManager::getConnection(array(
             'driver' => 'pdo_sqlite',
             'memory' => true,

@@ -11,7 +11,6 @@
 
 namespace Symfony\Component\Security\Csrf\Tests\TokenStorage;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Csrf\TokenStorage\NativeSessionTokenStorage;
 
 /**
@@ -20,7 +19,7 @@ use Symfony\Component\Security\Csrf\TokenStorage\NativeSessionTokenStorage;
  * @runTestsInSeparateProcesses
  * @preserveGlobalState disabled
  */
-class NativeSessionTokenStorageTest extends TestCase
+class NativeSessionTokenStorageTest extends \PHPUnit_Framework_TestCase
 {
     const SESSION_NAMESPACE = 'foobar';
 
@@ -51,11 +50,12 @@ class NativeSessionTokenStorageTest extends TestCase
         $this->assertSame(array(self::SESSION_NAMESPACE => array('token_id' => 'TOKEN')), $_SESSION);
     }
 
-    /**
-     * @requires PHP 5.4
-     */
     public function testStoreTokenInClosedSessionWithExistingSessionId()
     {
+        if (PHP_VERSION_ID < 50400) {
+            $this->markTestSkipped('This test requires PHP 5.4 or later.');
+        }
+
         session_id('foobar');
 
         $this->assertSame(PHP_SESSION_NONE, session_status());

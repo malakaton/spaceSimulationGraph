@@ -14,7 +14,6 @@ namespace Symfony\Bundle\TwigBundle\CacheWarmer;
 use Symfony\Component\HttpKernel\CacheWarmer\CacheWarmerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Bundle\FrameworkBundle\CacheWarmer\TemplateFinderInterface;
-use Twig\Error\Error;
 
 /**
  * Generates the Twig cache for all templates.
@@ -32,16 +31,15 @@ class TemplateCacheCacheWarmer implements CacheWarmerInterface
     /**
      * Constructor.
      *
-     * @param ContainerInterface           $container The dependency injection container
-     * @param TemplateFinderInterface|null $finder    The template paths cache warmer
+     * @param ContainerInterface      $container The dependency injection container
+     * @param TemplateFinderInterface $finder    The template paths cache warmer
      */
-    public function __construct(ContainerInterface $container, TemplateFinderInterface $finder = null)
+    public function __construct(ContainerInterface $container, TemplateFinderInterface $finder)
     {
         // We don't inject the Twig environment directly as it depends on the
         // template locator (via the loader) which might be a cached one.
         // The cached template locator is available once the TemplatePathsCacheWarmer
-        // has been warmed up.
-        // But it can also be null if templating has been disabled.
+        // has been warmed up
         $this->container = $container;
         $this->finder = $finder;
     }
@@ -53,10 +51,6 @@ class TemplateCacheCacheWarmer implements CacheWarmerInterface
      */
     public function warmUp($cacheDir)
     {
-        if (null === $this->finder) {
-            return;
-        }
-
         $twig = $this->container->get('twig');
 
         foreach ($this->finder->findAllTemplates() as $template) {
@@ -66,7 +60,7 @@ class TemplateCacheCacheWarmer implements CacheWarmerInterface
 
             try {
                 $twig->loadTemplate($template);
-            } catch (Error $e) {
+            } catch (\Twig_Error $e) {
                 // problem during compilation, give up
             }
         }

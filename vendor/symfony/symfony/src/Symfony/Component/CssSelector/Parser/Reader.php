@@ -95,7 +95,7 @@ class Reader
     /**
      * @param string $pattern
      *
-     * @return array|false
+     * @return bool
      */
     public function findPattern($pattern)
     {
@@ -116,6 +116,8 @@ class Reader
         $this->position += $length;
     }
 
+    /**
+     */
     public function moveToEnd()
     {
         $this->position = $this->length;

@@ -16,7 +16,6 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Twig\Environment;
 
 /**
  * Lists twig functions, filters, globals and tests present in the current project.
@@ -35,13 +34,18 @@ class DebugCommand extends Command
         parent::__construct($name);
     }
 
-    public function setTwigEnvironment(Environment $twig)
+    /**
+     * Sets the twig environment.
+     *
+     * @param \Twig_Environment $twig
+     */
+    public function setTwigEnvironment(\Twig_Environment $twig)
     {
         $this->twig = $twig;
     }
 
     /**
-     * @return Environment $twig
+     * @return \Twig_Environment $twig
      */
     protected function getTwigEnvironment()
     {
@@ -56,7 +60,7 @@ class DebugCommand extends Command
                 new InputOption('format', null, InputOption::VALUE_REQUIRED, 'The output format (text or json)', 'text'),
             ))
             ->setDescription('Shows a list of twig functions, filters, globals and tests')
-            ->setHelp(<<<'EOF'
+            ->setHelp(<<<EOF
 The <info>%command.name%</info> command outputs a list of twig functions,
 filters, globals and tests. Output can be filtered with an optional argument.
 
@@ -136,8 +140,9 @@ EOF
             return;
         }
         if ($type === 'functions' || $type === 'filters') {
+            $args = array();
             $cb = $entity->getCallable();
-            if (null === $cb) {
+            if (is_null($cb)) {
                 return;
             }
             if (is_array($cb)) {
@@ -145,7 +150,7 @@ EOF
                     return;
                 }
                 $refl = new \ReflectionMethod($cb[0], $cb[1]);
-            } elseif (is_object($cb) && method_exists($cb, '__invoke')) {
+            } elseif (is_object($cb) && is_callable($cb)) {
                 $refl = new \ReflectionMethod($cb, '__invoke');
             } elseif (function_exists($cb)) {
                 $refl = new \ReflectionFunction($cb);
@@ -155,20 +160,14 @@ EOF
                 throw new \UnexpectedValueException('Unsupported callback type');
             }
 
-            $args = $refl->getParameters();
-
             // filter out context/environment args
-            if ($entity->needsEnvironment()) {
-                array_shift($args);
-            }
-            if ($entity->needsContext()) {
-                array_shift($args);
-            }
+            $args = array_filter($refl->getParameters(), function ($param) use ($entity) {
+                if ($entity->needsContext() && $param->getName() === 'context') {
+                    return false;
+                }
 
-            if ($type === 'filters') {
-                // remove the value the filter is applied on
-                array_shift($args);
-            }
+                return !$param->getClass() || $param->getClass()->getName() !== 'Twig_Environment';
+            });
 
             // format args
             $args = array_map(function ($param) {
@@ -178,6 +177,11 @@ EOF
 
                 return $param->getName();
             }, $args);
+
+            if ($type === 'filters') {
+                // remove the value the filter is applied on
+                array_shift($args);
+            }
 
             return $args;
         }

@@ -28,7 +28,7 @@ class ObjectIdentityRetrievalStrategy implements ObjectIdentityRetrievalStrategy
     {
         try {
             return ObjectIdentity::fromDomainObject($domainObject);
-        } catch (InvalidDomainObjectException $e) {
+        } catch (InvalidDomainObjectException $failed) {
             return;
         }
     }

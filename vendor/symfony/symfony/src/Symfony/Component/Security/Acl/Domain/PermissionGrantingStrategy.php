@@ -55,21 +55,21 @@ class PermissionGrantingStrategy implements PermissionGrantingStrategyInterface
                 }
 
                 return $this->hasSufficientPermissions($acl, $aces, $masks, $sids, $administrativeMode);
-            } catch (NoAceFoundException $e) {
+            } catch (NoAceFoundException $noObjectAce) {
                 $aces = $acl->getClassAces();
 
                 if (!$aces) {
-                    throw $e;
+                    throw $noObjectAce;
                 }
 
                 return $this->hasSufficientPermissions($acl, $aces, $masks, $sids, $administrativeMode);
             }
-        } catch (NoAceFoundException $e) {
+        } catch (NoAceFoundException $noClassAce) {
             if ($acl->isEntriesInheriting() && null !== $parentAcl = $acl->getParentAcl()) {
                 return $parentAcl->isGranted($masks, $sids, $administrativeMode);
             }
 
-            throw $e;
+            throw $noClassAce;
         }
     }
 
@@ -86,20 +86,20 @@ class PermissionGrantingStrategy implements PermissionGrantingStrategyInterface
                 }
 
                 return $this->hasSufficientPermissions($acl, $aces, $masks, $sids, $administrativeMode);
-            } catch (NoAceFoundException $e) {
+            } catch (NoAceFoundException $noObjectAces) {
                 $aces = $acl->getClassFieldAces($field);
                 if (!$aces) {
-                    throw $e;
+                    throw $noObjectAces;
                 }
 
                 return $this->hasSufficientPermissions($acl, $aces, $masks, $sids, $administrativeMode);
             }
-        } catch (NoAceFoundException $e) {
+        } catch (NoAceFoundException $noClassAces) {
             if ($acl->isEntriesInheriting() && null !== $parentAcl = $acl->getParentAcl()) {
                 return $parentAcl->isFieldGranted($field, $masks, $sids, $administrativeMode);
             }
 
-            throw $e;
+            throw $noClassAces;
         }
     }
 
@@ -130,7 +130,7 @@ class PermissionGrantingStrategy implements PermissionGrantingStrategyInterface
      * @param SecurityIdentityInterface[] $sids               An array of SecurityIdentityInterface implementations
      * @param bool                        $administrativeMode True turns off audit logging
      *
-     * @return bool true, or false; either granting, or denying access respectively
+     * @return bool true, or false; either granting, or denying access respectively.
      *
      * @throws NoAceFoundException
      */

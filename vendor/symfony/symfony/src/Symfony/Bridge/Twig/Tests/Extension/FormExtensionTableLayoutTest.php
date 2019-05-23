@@ -19,7 +19,6 @@ use Symfony\Bridge\Twig\Extension\TranslationExtension;
 use Symfony\Component\Form\Tests\AbstractTableLayoutTest;
 use Symfony\Bridge\Twig\Tests\Extension\Fixtures\StubTranslator;
 use Symfony\Bridge\Twig\Tests\Extension\Fixtures\StubFilesystemLoader;
-use Twig\Environment;
 
 class FormExtensionTableLayoutTest extends AbstractTableLayoutTest
 {
@@ -40,7 +39,7 @@ class FormExtensionTableLayoutTest extends AbstractTableLayoutTest
             'form_table_layout.html.twig',
             'custom_widgets.html.twig',
         ));
-        $renderer = new TwigRenderer($rendererEngine, $this->getMockBuilder('Symfony\Component\Security\Csrf\CsrfTokenManagerInterface')->getMock());
+        $renderer = new TwigRenderer($rendererEngine, $this->getMock('Symfony\Component\Security\Csrf\CsrfTokenManagerInterface'));
 
         $this->extension = new FormExtension($renderer);
 
@@ -49,7 +48,7 @@ class FormExtensionTableLayoutTest extends AbstractTableLayoutTest
             __DIR__.'/Fixtures/templates/form',
         ));
 
-        $environment = new Environment($loader, array('strict_variables' => true));
+        $environment = new \Twig_Environment($loader, array('strict_variables' => true));
         $environment->addExtension(new TranslationExtension(new StubTranslator()));
         $environment->addGlobal('global', '');
         $environment->addExtension($this->extension);
@@ -116,40 +115,5 @@ class FormExtensionTableLayoutTest extends AbstractTableLayoutTest
     protected function setTheme(FormView $view, array $themes)
     {
         $this->extension->renderer->setTheme($view, $themes);
-    }
-
-    public function testRange()
-    {
-        $this->markTestIncomplete('No-op for forward compatibility with AbstractLayoutTest 2.8');
-    }
-
-    public function testRangeWithMinMaxValues()
-    {
-        $this->markTestIncomplete('No-op for forward compatibility with AbstractLayoutTest 2.8');
-    }
-
-    public function testLabelWithoutTranslationOnButton()
-    {
-        $this->markTestIncomplete('No-op for forward compatibility with AbstractLayoutTest 2.8');
-    }
-
-    public function testSingleChoiceWithPlaceholderWithoutTranslation()
-    {
-        $this->markTestIncomplete('No-op for forward compatibility with AbstractLayoutTest 2.8');
-    }
-
-    public function testSingleChoiceExpandedWithPlaceholderWithoutTranslation()
-    {
-        $this->markTestIncomplete('No-op for forward compatibility with AbstractLayoutTest 2.8');
-    }
-
-    public function testButtonlabelWithoutTranslation()
-    {
-        $this->markTestIncomplete('No-op for forward compatibility with AbstractLayoutTest 2.8');
-    }
-
-    public function testAttributesNotTranslatedWhenTranslationDomainIsFalse()
-    {
-        $this->markTestIncomplete('No-op for forward compatibility with AbstractLayoutTest 2.8');
     }
 }

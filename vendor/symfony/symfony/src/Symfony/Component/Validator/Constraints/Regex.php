@@ -18,6 +18,8 @@ use Symfony\Component\Validator\Constraint;
  * @Target({"PROPERTY", "METHOD", "ANNOTATION"})
  *
  * @author Bernhard Schussek <bschussek@gmail.com>
+ *
+ * @api
  */
 class Regex extends Constraint
 {
@@ -50,7 +52,7 @@ class Regex extends Constraint
      * Pattern is also ignored if match=false since the pattern should
      * then be reversed before application.
      *
-     * @see http://dev.w3.org/html5/spec/single-page.html#the-pattern-attribute
+     * @link http://dev.w3.org/html5/spec/single-page.html#the-pattern-attribute
      *
      * @return string|null
      */

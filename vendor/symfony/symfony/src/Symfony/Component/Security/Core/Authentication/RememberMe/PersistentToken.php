@@ -12,9 +12,9 @@
 namespace Symfony\Component\Security\Core\Authentication\RememberMe;
 
 /**
- * @author Johannes M. Schmitt <schmittjoh@gmail.com>
+ * This class is only used by PersistentTokenRememberMeServices internally.
  *
- * @internal
+ * @author Johannes M. Schmitt <schmittjoh@gmail.com>
  */
 final class PersistentToken implements PersistentTokenInterface
 {
@@ -40,7 +40,7 @@ final class PersistentToken implements PersistentTokenInterface
         if (empty($class)) {
             throw new \InvalidArgumentException('$class must not be empty.');
         }
-        if ('' === $username || null === $username) {
+        if (empty($username)) {
             throw new \InvalidArgumentException('$username must not be empty.');
         }
         if (empty($series)) {

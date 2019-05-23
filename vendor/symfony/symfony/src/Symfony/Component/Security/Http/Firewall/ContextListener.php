@@ -101,7 +101,7 @@ class ContextListener implements ListenerInterface
     }
 
     /**
-     * Writes the security token into the session.
+     * Writes the SecurityContext to the session.
      *
      * @param FilterResponseEvent $event A FilterResponseEvent instance
      */
@@ -120,6 +120,10 @@ class ContextListener implements ListenerInterface
 
         $request = $event->getRequest();
         $session = $request->getSession();
+
+        if (null === $session) {
+            return;
+        }
 
         if ((null === $token = $this->tokenStorage->getToken()) || ($token instanceof AnonymousToken)) {
             if ($request->hasPreviousSession()) {
@@ -150,8 +154,6 @@ class ContextListener implements ListenerInterface
             return $token;
         }
 
-        $userNotFoundByProvider = false;
-
         foreach ($this->userProviders as $provider) {
             try {
                 $refreshedUser = $provider->refreshUser($user);
@@ -162,19 +164,15 @@ class ContextListener implements ListenerInterface
                 }
 
                 return $token;
-            } catch (UnsupportedUserException $e) {
+            } catch (UnsupportedUserException $unsupported) {
                 // let's try the next user provider
-            } catch (UsernameNotFoundException $e) {
+            } catch (UsernameNotFoundException $notFound) {
                 if (null !== $this->logger) {
-                    $this->logger->warning('Username could not be found in the selected user provider.', array('username' => $e->getUsername(), 'provider' => get_class($provider)));
+                    $this->logger->warning('Username could not be found in the selected user provider.', array('username' => $notFound->getUsername(), 'provider' => get_class($provider)));
                 }
 
-                $userNotFoundByProvider = true;
+                return;
             }
-        }
-
-        if ($userNotFoundByProvider) {
-            return;
         }
 
         throw new \RuntimeException(sprintf('There is no user provider for user "%s".', get_class($user)));

@@ -14,8 +14,6 @@ namespace Symfony\Bundle\TwigBundle\Loader;
 use Symfony\Component\Config\FileLocatorInterface;
 use Symfony\Component\Templating\TemplateNameParserInterface;
 use Symfony\Component\Templating\TemplateReferenceInterface;
-use Twig\Error\LoaderError;
-use Twig\Loader\FilesystemLoader as BaseFilesystemLoader;
 
 /**
  * FilesystemLoader extends the default Twig filesystem loader
@@ -23,7 +21,7 @@ use Twig\Loader\FilesystemLoader as BaseFilesystemLoader;
  *
  * @author Fabien Potencier <fabien@symfony.com>
  */
-class FilesystemLoader extends BaseFilesystemLoader
+class FilesystemLoader extends \Twig_Loader_Filesystem
 {
     protected $locator;
     protected $parser;
@@ -60,13 +58,12 @@ class FilesystemLoader extends BaseFilesystemLoader
      * Otherwise the template is located using the locator from the twig library.
      *
      * @param string|TemplateReferenceInterface $template The template
-     * @param bool                              $throw    When true, a LoaderError exception will be thrown if a template could not be found
      *
      * @return string The path to the template file
      *
-     * @throws LoaderError if the template could not be found
+     * @throws \Twig_Error_Loader if the template could not be found
      */
-    protected function findTemplate($template, $throw = true)
+    protected function findTemplate($template)
     {
         $logicalName = (string) $template;
 
@@ -75,25 +72,23 @@ class FilesystemLoader extends BaseFilesystemLoader
         }
 
         $file = null;
+        $previous = null;
         try {
             $file = parent::findTemplate($logicalName);
-        } catch (LoaderError $e) {
-            $twigLoaderException = $e;
+        } catch (\Twig_Error_Loader $e) {
+            $previous = $e;
 
             // for BC
             try {
                 $template = $this->parser->parse($template);
                 $file = $this->locator->locate($template);
             } catch (\Exception $e) {
+                $previous = $e;
             }
         }
 
         if (false === $file || null === $file) {
-            if ($throw) {
-                throw $twigLoaderException;
-            }
-
-            return false;
+            throw new \Twig_Error_Loader(sprintf('Unable to find template "%s".', $logicalName), -1, null, $previous);
         }
 
         return $this->cache[$logicalName] = $file;

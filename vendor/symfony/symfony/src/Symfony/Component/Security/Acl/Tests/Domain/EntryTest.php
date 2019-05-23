@@ -11,10 +11,9 @@
 
 namespace Symfony\Component\Security\Acl\Tests\Domain;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Acl\Domain\Entry;
 
-class EntryTest extends TestCase
+class EntryTest extends \PHPUnit_Framework_TestCase
 {
     public function testConstructor()
     {
@@ -37,7 +36,7 @@ class EntryTest extends TestCase
         $this->assertTrue($ace->isAuditSuccess());
         $ace->setAuditSuccess(false);
         $this->assertFalse($ace->isAuditSuccess());
-        $ace->setAuditSuccess(true);
+        $ace->setAuditsuccess(true);
         $this->assertTrue($ace->isAuditSuccess());
     }
 
@@ -110,11 +109,11 @@ class EntryTest extends TestCase
 
     protected function getAcl()
     {
-        return $this->getMockBuilder('Symfony\Component\Security\Acl\Model\AclInterface')->getMock();
+        return $this->getMock('Symfony\Component\Security\Acl\Model\AclInterface');
     }
 
     protected function getSid()
     {
-        return $this->getMockBuilder('Symfony\Component\Security\Acl\Model\SecurityIdentityInterface')->getMock();
+        return $this->getMock('Symfony\Component\Security\Acl\Model\SecurityIdentityInterface');
     }
 }

@@ -11,7 +11,6 @@
 
 namespace Symfony\Component\HttpFoundation\Tests\Session\Storage;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Session\Storage\PhpBridgeSessionStorage;
 use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBag;
 
@@ -25,7 +24,7 @@ use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBag;
  * @runTestsInSeparateProcesses
  * @preserveGlobalState disabled
  */
-class PhpBridgeSessionStorageTest extends TestCase
+class PhpBridgeSessionStorageTest extends \PHPUnit_Framework_TestCase
 {
     private $savePath;
 
@@ -62,7 +61,7 @@ class PhpBridgeSessionStorageTest extends TestCase
 
     public function testPhpSession53()
     {
-        if (\PHP_VERSION_ID >= 50400) {
+        if (PHP_VERSION_ID >= 50400) {
             $this->markTestSkipped('Test skipped, for PHP 5.3 only.');
         }
 
@@ -84,13 +83,15 @@ class PhpBridgeSessionStorageTest extends TestCase
         $this->assertTrue(isset($_SESSION[$key]));
     }
 
-    /**
-     * @requires PHP 5.4
-     */
     public function testPhpSession54()
     {
+        if (PHP_VERSION_ID < 50400) {
+            $this->markTestSkipped('Test skipped, for PHP 5.4 only.');
+        }
+
         $storage = $this->getStorage();
 
+        $this->assertFalse(isset($_SESSION));
         $this->assertFalse($storage->getSaveHandler()->isActive());
         $this->assertFalse($storage->isStarted());
 

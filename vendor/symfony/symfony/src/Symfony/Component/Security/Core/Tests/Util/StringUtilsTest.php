@@ -11,13 +11,12 @@
 
 namespace Symfony\Component\Security\Core\Tests\Util;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Core\Util\StringUtils;
 
 /**
  * Data from PHP.net's hash_equals tests.
  */
-class StringUtilsTest extends TestCase
+class StringUtilsTest extends \PHPUnit_Framework_TestCase
 {
     public function dataProviderTrue()
     {

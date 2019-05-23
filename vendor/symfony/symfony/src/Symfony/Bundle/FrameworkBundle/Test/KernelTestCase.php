@@ -11,7 +11,6 @@
 
 namespace Symfony\Bundle\FrameworkBundle\Test;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpKernel\KernelInterface;
 
@@ -20,7 +19,7 @@ use Symfony\Component\HttpKernel\KernelInterface;
  *
  * @author Fabien Potencier <fabien@symfony.com>
  */
-abstract class KernelTestCase extends TestCase
+abstract class KernelTestCase extends \PHPUnit_Framework_TestCase
 {
     protected static $class;
 
@@ -80,12 +79,8 @@ abstract class KernelTestCase extends TestCase
             if (preg_match('/^-[^ \-]*c$/', $testArg) || $testArg === '--configuration') {
                 $dir = realpath($reversedArgs[$argIndex - 1]);
                 break;
-            } elseif (0 === strpos($testArg, '--configuration=')) {
+            } elseif (strpos($testArg, '--configuration=') === 0) {
                 $argPath = substr($testArg, strlen('--configuration='));
-                $dir = realpath($argPath);
-                break;
-            } elseif (0 === strpos($testArg, '-c')) {
-                $argPath = substr($testArg, strlen('-c'));
                 $dir = realpath($argPath);
                 break;
             }

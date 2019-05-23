@@ -11,10 +11,9 @@
 
 namespace Symfony\Component\BrowserKit\Tests;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\BrowserKit\Cookie;
 
-class CookieTest extends TestCase
+class CookieTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @dataProvider getTestsForToFromString
@@ -75,31 +74,30 @@ class CookieTest extends TestCase
 
     public function testFromStringWithUrl()
     {
-        $this->assertEquals('foo=bar; domain=www.example.com; path=/', (string) Cookie::fromString('foo=bar', 'http://www.example.com/'));
-        $this->assertEquals('foo=bar; domain=www.example.com; path=/', (string) Cookie::fromString('foo=bar', 'http://www.example.com'));
-        $this->assertEquals('foo=bar; domain=www.example.com; path=/', (string) Cookie::fromString('foo=bar', 'http://www.example.com?foo'));
-        $this->assertEquals('foo=bar; domain=www.example.com; path=/foo', (string) Cookie::fromString('foo=bar', 'http://www.example.com/foo/bar'));
-        $this->assertEquals('foo=bar; domain=www.example.com; path=/', (string) Cookie::fromString('foo=bar; path=/', 'http://www.example.com/foo/bar'));
-        $this->assertEquals('foo=bar; domain=www.myotherexample.com; path=/', (string) Cookie::fromString('foo=bar; domain=www.myotherexample.com', 'http://www.example.com/'));
+        $this->assertEquals('foo=bar; domain=www.example.com; path=/', (string) Cookie::FromString('foo=bar', 'http://www.example.com/'));
+        $this->assertEquals('foo=bar; domain=www.example.com; path=/', (string) Cookie::FromString('foo=bar', 'http://www.example.com'));
+        $this->assertEquals('foo=bar; domain=www.example.com; path=/', (string) Cookie::FromString('foo=bar', 'http://www.example.com?foo'));
+        $this->assertEquals('foo=bar; domain=www.example.com; path=/foo', (string) Cookie::FromString('foo=bar', 'http://www.example.com/foo/bar'));
+        $this->assertEquals('foo=bar; domain=www.example.com; path=/', (string) Cookie::FromString('foo=bar; path=/', 'http://www.example.com/foo/bar'));
+        $this->assertEquals('foo=bar; domain=www.myotherexample.com; path=/', (string) Cookie::FromString('foo=bar; domain=www.myotherexample.com', 'http://www.example.com/'));
     }
 
     public function testFromStringThrowsAnExceptionIfCookieIsNotValid()
     {
-        $this->{method_exists($this, $_ = 'expectException') ? $_ : 'setExpectedException'}('InvalidArgumentException');
-        Cookie::fromString('foo');
+        $this->setExpectedException('InvalidArgumentException');
+        Cookie::FromString('foo');
     }
 
-    public function testFromStringIgnoresInvalidExpiresDate()
+    public function testFromStringThrowsAnExceptionIfCookieDateIsNotValid()
     {
-        $cookie = Cookie::fromString('foo=bar; expires=Flursday July 31st 2020, 08:49:37 GMT');
-
-        $this->assertFalse($cookie->isExpired());
+        $this->setExpectedException('InvalidArgumentException');
+        Cookie::FromString('foo=bar; expires=Flursday July 31st 2020, 08:49:37 GMT');
     }
 
     public function testFromStringThrowsAnExceptionIfUrlIsNotValid()
     {
-        $this->{method_exists($this, $_ = 'expectException') ? $_ : 'setExpectedException'}('InvalidArgumentException');
-        Cookie::fromString('foo=bar', 'foobar');
+        $this->setExpectedException('InvalidArgumentException');
+        Cookie::FromString('foo=bar', 'foobar');
     }
 
     public function testGetName()
@@ -177,14 +175,5 @@ class CookieTest extends TestCase
 
         $cookie = new Cookie('foo', 'bar', 0);
         $this->assertFalse($cookie->isExpired());
-    }
-
-    /**
-     * @expectedException        \UnexpectedValueException
-     * @expectedExceptionMessage The cookie expiration time "string" is not valid.
-     */
-    public function testConstructException()
-    {
-        $cookie = new Cookie('foo', 'bar', 'string');
     }
 }

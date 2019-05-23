@@ -57,14 +57,7 @@ class FragmentListener implements EventSubscriberInterface
     {
         $request = $event->getRequest();
 
-        if ($this->fragmentPath !== rawurldecode($request->getPathInfo())) {
-            return;
-        }
-
-        if ($request->attributes->has('_controller')) {
-            // Is a sub-request: no need to parse _path but it should still be removed from query parameters as below.
-            $request->query->remove('_path');
-
+        if ($request->attributes->has('_controller') || $this->fragmentPath !== rawurldecode($request->getPathInfo())) {
             return;
         }
 
@@ -81,7 +74,7 @@ class FragmentListener implements EventSubscriberInterface
     protected function validateRequest(Request $request)
     {
         // is the Request safe?
-        if (!$request->isMethodSafe(false)) {
+        if (!$request->isMethodSafe()) {
             throw new AccessDeniedHttpException();
         }
 
@@ -101,7 +94,7 @@ class FragmentListener implements EventSubscriberInterface
      */
     protected function getLocalIpAddresses()
     {
-        @trigger_error('The '.__METHOD__.' method is deprecated since version 2.3.19 and will be removed in 3.0.', E_USER_DEPRECATED);
+        trigger_error('The '.__METHOD__.' method is deprecated since version 2.3.19 and will be removed in 3.0.', E_USER_DEPRECATED);
 
         return array('127.0.0.1', 'fe80::1', '::1');
     }

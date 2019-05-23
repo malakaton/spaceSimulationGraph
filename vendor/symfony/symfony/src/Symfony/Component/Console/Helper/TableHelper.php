@@ -37,7 +37,7 @@ class TableHelper extends Helper
     public function __construct($triggerDeprecationError = true)
     {
         if ($triggerDeprecationError) {
-            @trigger_error('The '.__CLASS__.' class is deprecated since version 2.5 and will be removed in 3.0. Use the Symfony\Component\Console\Helper\Table class instead.', E_USER_DEPRECATED);
+            trigger_error('The '.__CLASS__.' class is deprecated since version 2.5 and will be removed in 3.0. Use the Symfony\Component\Console\Helper\Table class instead.', E_USER_DEPRECATED);
         }
 
         $this->table = new Table(new NullOutput());
@@ -48,7 +48,7 @@ class TableHelper extends Helper
      *
      * @param int $layout self::LAYOUT_*
      *
-     * @return $this
+     * @return TableHelper
      *
      * @throws \InvalidArgumentException when the table layout is not known
      */
@@ -69,7 +69,7 @@ class TableHelper extends Helper
 
             default:
                 throw new \InvalidArgumentException(sprintf('Invalid table layout "%s".', $layout));
-        }
+        };
 
         return $this;
     }
@@ -114,7 +114,7 @@ class TableHelper extends Helper
      *
      * @param string $paddingChar
      *
-     * @return $this
+     * @return TableHelper
      */
     public function setPaddingChar($paddingChar)
     {
@@ -128,7 +128,7 @@ class TableHelper extends Helper
      *
      * @param string $horizontalBorderChar
      *
-     * @return $this
+     * @return TableHelper
      */
     public function setHorizontalBorderChar($horizontalBorderChar)
     {
@@ -142,7 +142,7 @@ class TableHelper extends Helper
      *
      * @param string $verticalBorderChar
      *
-     * @return $this
+     * @return TableHelper
      */
     public function setVerticalBorderChar($verticalBorderChar)
     {
@@ -156,7 +156,7 @@ class TableHelper extends Helper
      *
      * @param string $crossingChar
      *
-     * @return $this
+     * @return TableHelper
      */
     public function setCrossingChar($crossingChar)
     {
@@ -170,7 +170,7 @@ class TableHelper extends Helper
      *
      * @param string $cellHeaderFormat
      *
-     * @return $this
+     * @return TableHelper
      */
     public function setCellHeaderFormat($cellHeaderFormat)
     {
@@ -184,7 +184,7 @@ class TableHelper extends Helper
      *
      * @param string $cellRowFormat
      *
-     * @return $this
+     * @return TableHelper
      */
     public function setCellRowFormat($cellRowFormat)
     {
@@ -198,7 +198,7 @@ class TableHelper extends Helper
      *
      * @param string $cellRowContentFormat
      *
-     * @return $this
+     * @return TableHelper
      */
     public function setCellRowContentFormat($cellRowContentFormat)
     {
@@ -212,7 +212,7 @@ class TableHelper extends Helper
      *
      * @param string $borderFormat
      *
-     * @return $this
+     * @return TableHelper
      */
     public function setBorderFormat($borderFormat)
     {
@@ -226,7 +226,7 @@ class TableHelper extends Helper
      *
      * @param int $padType STR_PAD_*
      *
-     * @return $this
+     * @return TableHelper
      */
     public function setPadType($padType)
     {

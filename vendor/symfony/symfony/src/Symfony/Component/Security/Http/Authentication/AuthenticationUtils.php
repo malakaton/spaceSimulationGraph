@@ -17,7 +17,7 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Security;
 
 /**
- * Extracts Security Errors from Request.
+ * Extracts Security Errors from Request
  *
  * @author Boris Vujicic <boris.vujicic@gmail.com>
  */
@@ -65,20 +65,13 @@ class AuthenticationUtils
      */
     public function getLastUsername()
     {
-        $request = $this->getRequest();
-
-        if ($request->attributes->has(Security::LAST_USERNAME)) {
-            return $request->attributes->get(Security::LAST_USERNAME);
-        }
-
-        $session = $request->getSession();
+        $session = $this->getRequest()->getSession();
 
         return null === $session ? '' : $session->get(Security::LAST_USERNAME);
     }
 
     /**
      * @return Request
-     *
      * @throws \LogicException
      */
     private function getRequest()

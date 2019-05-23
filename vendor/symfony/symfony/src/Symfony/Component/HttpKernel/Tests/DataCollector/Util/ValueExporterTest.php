@@ -11,10 +11,9 @@
 
 namespace Symfony\Component\HttpKernel\Tests\DataCollector\Util;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpKernel\DataCollector\Util\ValueExporter;
 
-class ValueExporterTest extends TestCase
+class ValueExporterTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var ValueExporter
@@ -29,23 +28,16 @@ class ValueExporterTest extends TestCase
     public function testDateTime()
     {
         $dateTime = new \DateTime('2014-06-10 07:35:40', new \DateTimeZone('UTC'));
-        $this->assertSame('Object(DateTime) - 2014-06-10T07:35:40+00:00', $this->valueExporter->exportValue($dateTime));
+        $this->assertSame('Object(DateTime) - 2014-06-10T07:35:40+0000', $this->valueExporter->exportValue($dateTime));
     }
 
-    /**
-     * @requires PHP 5.5
-     */
     public function testDateTimeImmutable()
     {
-        $dateTime = new \DateTimeImmutable('2014-06-10 07:35:40', new \DateTimeZone('UTC'));
-        $this->assertSame('Object(DateTimeImmutable) - 2014-06-10T07:35:40+00:00', $this->valueExporter->exportValue($dateTime));
-    }
+        if (!class_exists('DateTimeImmutable', false)) {
+            $this->markTestSkipped('Test skipped, class DateTimeImmutable does not exist.');
+        }
 
-    public function testIncompleteClass()
-    {
-        $foo = new \__PHP_Incomplete_Class();
-        $array = new \ArrayObject($foo);
-        $array['__PHP_Incomplete_Class_Name'] = 'AppBundle/Foo';
-        $this->assertSame('__PHP_Incomplete_Class(AppBundle/Foo)', $this->valueExporter->exportValue($foo));
+        $dateTime = new \DateTimeImmutable('2014-06-10 07:35:40', new \DateTimeZone('UTC'));
+        $this->assertSame('Object(DateTimeImmutable) - 2014-06-10T07:35:40+0000', $this->valueExporter->exportValue($dateTime));
     }
 }

@@ -55,17 +55,14 @@ class ArrayNode extends BaseNode implements PrototypeNodeInterface
             return $value;
         }
 
-        $normalized = array();
-
         foreach ($value as $k => $v) {
             if (false !== strpos($k, '-') && false === strpos($k, '_') && !array_key_exists($normalizedKey = str_replace('-', '_', $k), $value)) {
-                $normalized[$normalizedKey] = $v;
-            } else {
-                $normalized[$k] = $v;
+                $value[$normalizedKey] = $v;
+                unset($value[$k]);
             }
         }
 
-        return $normalized;
+        return $value;
     }
 
     /**
@@ -249,7 +246,7 @@ class ArrayNode extends BaseNode implements PrototypeNodeInterface
 
             try {
                 $value[$name] = $child->finalize($value[$name]);
-            } catch (UnsetKeyException $e) {
+            } catch (UnsetKeyException $unset) {
                 unset($value[$name]);
             }
         }
@@ -344,8 +341,8 @@ class ArrayNode extends BaseNode implements PrototypeNodeInterface
     /**
      * Merges values together.
      *
-     * @param mixed $leftSide  The left side to merge
-     * @param mixed $rightSide The right side to merge
+     * @param mixed $leftSide  The left side to merge.
+     * @param mixed $rightSide The right side to merge.
      *
      * @return mixed The merged values
      *

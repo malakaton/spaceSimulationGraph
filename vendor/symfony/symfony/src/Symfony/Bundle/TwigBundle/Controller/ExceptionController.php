@@ -17,9 +17,6 @@ use Symfony\Component\HttpKernel\Log\DebugLoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Templating\TemplateReferenceInterface;
-use Twig\Environment;
-use Twig\Error\LoaderError;
-use Twig\Loader\ExistsLoaderInterface;
 
 /**
  * ExceptionController renders error or exception pages for a given
@@ -33,11 +30,11 @@ class ExceptionController
     protected $twig;
 
     /**
-     * @var bool Show error (false) or exception (true) pages by default
+     * @var bool Show error (false) or exception (true) pages by default.
      */
     protected $debug;
 
-    public function __construct(Environment $twig, $debug)
+    public function __construct(\Twig_Environment $twig, $debug)
     {
         $this->twig = $twig;
         $this->debug = $debug;
@@ -66,7 +63,7 @@ class ExceptionController
         $code = $exception->getStatusCode();
 
         return new Response($this->twig->render(
-            (string) $this->findTemplate($request, $request->getRequestFormat(), $code, $showException),
+            $this->findTemplate($request, $request->getRequestFormat(), $code, $showException),
             array(
                 'status_code' => $code,
                 'status_text' => isset(Response::$statusTexts[$code]) ? Response::$statusTexts[$code] : '',
@@ -74,7 +71,7 @@ class ExceptionController
                 'logger' => $logger,
                 'currentContent' => $currentContent,
             )
-        ), 200, array('Content-Type' => $request->getMimeType($request->getRequestFormat()) ?: 'text/html'));
+        ));
     }
 
     /**
@@ -128,21 +125,19 @@ class ExceptionController
         return new TemplateReference('TwigBundle', 'Exception', $showException ? 'exception_full' : $name, 'html', 'twig');
     }
 
-    // to be removed when the minimum required version of Twig is >= 3.0
+    // to be removed when the minimum required version of Twig is >= 2.0
     protected function templateExists($template)
     {
-        $template = (string) $template;
-
         $loader = $this->twig->getLoader();
-        if ($loader instanceof ExistsLoaderInterface || method_exists($loader, 'exists')) {
+        if ($loader instanceof \Twig_ExistsLoaderInterface) {
             return $loader->exists($template);
         }
 
         try {
-            $loader->getSourceContext($template)->getCode();
+            $loader->getSource($template);
 
             return true;
-        } catch (LoaderError $e) {
+        } catch (\Twig_Error_Loader $e) {
         }
 
         return false;

@@ -11,19 +11,18 @@
 
 namespace Symfony\Bundle\FrameworkBundle\Tests\Command;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Bundle\FrameworkBundle\Command\RouterDebugCommand;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 
-class RouterDebugCommandTest extends TestCase
+class RouterDebugCommandTest extends \PHPUnit_Framework_TestCase
 {
     public function testDebugAllRoutes()
     {
         $tester = $this->createCommandTester();
-        $ret = $tester->execute(array('name' => null), array('decorated' => false));
+        $ret = $tester->execute(array('name' => null));
 
         $this->assertEquals(0, $ret, 'Returns 0 in case of success');
         $this->assertContains('[router] Current routes', $tester->getDisplay());
@@ -32,7 +31,7 @@ class RouterDebugCommandTest extends TestCase
     public function testDebugSingleRoute()
     {
         $tester = $this->createCommandTester();
-        $ret = $tester->execute(array('name' => 'foo'), array('decorated' => false));
+        $ret = $tester->execute(array('name' => 'foo'));
 
         $this->assertEquals(0, $ret, 'Returns 0 in case of success');
         $this->assertContains('[router] Route "foo"', $tester->getDisplay());
@@ -64,7 +63,7 @@ class RouterDebugCommandTest extends TestCase
     {
         $routeCollection = new RouteCollection();
         $routeCollection->add('foo', new Route('foo'));
-        $router = $this->getMockBuilder('Symfony\Component\Routing\RouterInterface')->getMock();
+        $router = $this->getMock('Symfony\Component\Routing\RouterInterface');
         $router
             ->expects($this->any())
             ->method('getRouteCollection')
@@ -72,10 +71,10 @@ class RouterDebugCommandTest extends TestCase
         ;
 
         $loader = $this->getMockBuilder('Symfony\Bundle\FrameworkBundle\Routing\DelegatingLoader')
-            ->disableOriginalConstructor()
-            ->getMock();
+             ->disableOriginalConstructor()
+             ->getMock();
 
-        $container = $this->getMockBuilder('Symfony\Component\DependencyInjection\ContainerInterface')->getMock();
+        $container = $this->getMock('Symfony\Component\DependencyInjection\ContainerInterface');
         $container
             ->expects($this->once())
             ->method('has')

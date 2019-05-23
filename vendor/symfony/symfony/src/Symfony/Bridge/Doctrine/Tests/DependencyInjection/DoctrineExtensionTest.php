@@ -2,16 +2,15 @@
 
 /*
  * This file is part of the Symfony package.
- *
- * (c) Fabien Potencier <fabien@symfony.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
+*
+* (c) Fabien Potencier <fabien@symfony.com>
+*
+* For the full copyright and license information, please view the LICENSE
+* file that was distributed with this source code.
+*/
 
 namespace Symfony\Bridge\Doctrine\Tests\DependencyInjection;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
@@ -19,7 +18,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 /**
  * @author  Fabio B. Silva <fabio.bat.silva@gmail.com>
  */
-class DoctrineExtensionTest extends TestCase
+class DoctrineExtensionTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var \Symfony\Bridge\Doctrine\DependencyInjection\AbstractDoctrineExtension
@@ -45,12 +44,12 @@ class DoctrineExtensionTest extends TestCase
         $this->extension->expects($this->any())
             ->method('getObjectManagerElementName')
             ->will($this->returnCallback(function ($name) {
-                return 'doctrine.orm.'.$name;
+                 return 'doctrine.orm.'.$name;
             }));
     }
 
     /**
-     * @expectedException \LogicException
+     * @expectedException LogicException
      */
     public function testFixManagersAutoMappingsWithTwoAutomappings()
     {
@@ -163,10 +162,10 @@ class DoctrineExtensionTest extends TestCase
 
         $newEmConfigs = $method->invoke($this->extension, $emConfigs, $bundles);
 
-        $this->assertEquals($newEmConfigs['em1'], array_merge(array(
+        $this->assertEquals($newEmConfigs["em1"], array_merge(array(
             'auto_mapping' => false,
         ), $expectedEm1));
-        $this->assertEquals($newEmConfigs['em2'], array_merge(array(
+        $this->assertEquals($newEmConfigs["em2"], array_merge(array(
             'auto_mapping' => false,
         ), $expectedEm2));
     }
@@ -240,7 +239,7 @@ class DoctrineExtensionTest extends TestCase
     }
 
     /**
-     * @expectedException \InvalidArgumentException
+     * @expectedException InvalidArgumentException
      * @expectedExceptionMessage "unrecognized_type" is an unrecognized Doctrine cache driver.
      */
     public function testUnrecognizedCacheDriverException()

@@ -11,14 +11,13 @@
 
 namespace Symfony\Component\HttpKernel\Tests\DataCollector;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpKernel\DataCollector\ConfigDataCollector;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class ConfigDataCollectorTest extends TestCase
+class ConfigDataCollectorTest extends \PHPUnit_Framework_TestCase
 {
     public function testCollect()
     {
@@ -38,9 +37,9 @@ class ConfigDataCollectorTest extends TestCase
 
         // if else clause because we don't know it
         if (extension_loaded('xdebug')) {
-            $this->assertTrue($c->hasXDebug());
+            $this->assertTrue($c->hasXdebug());
         } else {
-            $this->assertFalse($c->hasXDebug());
+            $this->assertFalse($c->hasXdebug());
         }
 
         // if else clause because we don't know it

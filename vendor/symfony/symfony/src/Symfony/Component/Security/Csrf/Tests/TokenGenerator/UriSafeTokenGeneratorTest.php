@@ -11,19 +11,17 @@
 
 namespace Symfony\Component\Security\Csrf\Tests\TokenGenerator;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Csrf\TokenGenerator\UriSafeTokenGenerator;
 
 /**
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class UriSafeTokenGeneratorTest extends TestCase
+class UriSafeTokenGeneratorTest extends \PHPUnit_Framework_TestCase
 {
     const ENTROPY = 1000;
 
     /**
-     * A non alpha-numeric byte string.
-     *
+     * A non alpha-numeric byte string
      * @var string
      */
     private static $bytes;
@@ -45,7 +43,7 @@ class UriSafeTokenGeneratorTest extends TestCase
 
     protected function setUp()
     {
-        $this->random = $this->getMockBuilder('Symfony\Component\Security\Core\Util\SecureRandomInterface')->getMock();
+        $this->random = $this->getMock('Symfony\Component\Security\Core\Util\SecureRandomInterface');
         $this->generator = new UriSafeTokenGenerator($this->random, self::ENTROPY);
     }
 
@@ -59,7 +57,7 @@ class UriSafeTokenGeneratorTest extends TestCase
     {
         $this->random->expects($this->once())
             ->method('nextBytes')
-            ->with(self::ENTROPY / 8)
+            ->with(self::ENTROPY/8)
             ->will($this->returnValue(self::$bytes));
 
         $token = $this->generator->generateToken();

@@ -349,14 +349,14 @@ class FormConfigBuilder implements FormConfigBuilderInterface
     /**
      * Alias of {@link getInheritData()}.
      *
-     * @return bool
+     * @return FormConfigBuilder The configuration object.
      *
      * @deprecated since version 2.3, to be removed in 3.0.
      *             Use {@link getInheritData()} instead.
      */
     public function getVirtual()
     {
-        @trigger_error('The '.__METHOD__.' method is deprecated since version 2.3 and will be removed in 3.0. Use the FormConfigBuilder::getInheritData() method instead.', E_USER_DEPRECATED);
+        trigger_error('The '.__METHOD__.' method is deprecated since version 2.3 and will be removed in 3.0. Use the FormConfigBuilder::getInheritData() method instead.', E_USER_DEPRECATED);
 
         return $this->getInheritData();
     }
@@ -713,14 +713,16 @@ class FormConfigBuilder implements FormConfigBuilderInterface
     /**
      * Alias of {@link setInheritData()}.
      *
-     * @param bool $inheritData Whether the form should inherit its parent's data
+     * @param bool $inheritData Whether the form should inherit its parent's data.
+     *
+     * @return FormConfigBuilder The configuration object.
      *
      * @deprecated since version 2.3, to be removed in 3.0.
      *             Use {@link setInheritData()} instead.
      */
     public function setVirtual($inheritData)
     {
-        @trigger_error('The '.__METHOD__.' method is deprecated since version 2.3 and will be removed in 3.0. Use the FormConfigBuilder::setInheritData() method instead.', E_USER_DEPRECATED);
+        trigger_error('The '.__METHOD__.' method is deprecated since version 2.3 and will be removed in 3.0. Use the FormConfigBuilder::setInheritData() method instead.', E_USER_DEPRECATED);
 
         $this->setInheritData($inheritData);
     }
@@ -852,10 +854,6 @@ class FormConfigBuilder implements FormConfigBuilderInterface
      */
     public function setAutoInitialize($initialize)
     {
-        if ($this->locked) {
-            throw new BadMethodCallException('FormConfigBuilder methods cannot be accessed anymore once the builder is turned into a FormConfigInterface instance.');
-        }
-
         $this->autoInitialize = (bool) $initialize;
 
         return $this;
@@ -880,7 +878,7 @@ class FormConfigBuilder implements FormConfigBuilderInterface
     /**
      * Validates whether the given variable is a valid form name.
      *
-     * @param string|int $name The tested form name
+     * @param string|int $name The tested form name.
      *
      * @throws UnexpectedTypeException  If the name is not a string or an integer.
      * @throws InvalidArgumentException If the name contains invalid characters.
@@ -909,9 +907,9 @@ class FormConfigBuilder implements FormConfigBuilderInterface
      *   * contains only letters, digits, numbers, underscores ("_"),
      *     hyphens ("-") and colons (":")
      *
-     * @param string $name The tested form name
+     * @param string $name The tested form name.
      *
-     * @return bool Whether the name is valid
+     * @return bool Whether the name is valid.
      */
     public static function isValidName($name)
     {

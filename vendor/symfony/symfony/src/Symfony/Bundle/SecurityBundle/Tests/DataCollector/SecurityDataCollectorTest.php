@@ -1,24 +1,14 @@
 <?php
 
-/*
- * This file is part of the Symfony package.
- *
- * (c) Fabien Potencier <fabien@symfony.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Symfony\Bundle\SecurityBundle\Tests\DataCollector;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\SecurityBundle\DataCollector\SecurityDataCollector;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Role\Role;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
 
-class SecurityDataCollectorTest extends TestCase
+class SecurityDataCollectorTest extends \PHPUnit_Framework_TestCase
 {
     public function testCollectWhenSecurityIsDisabled()
     {
@@ -55,7 +45,9 @@ class SecurityDataCollectorTest extends TestCase
      */
     public function testLegacyCollectWhenAuthenticationTokenIsNull()
     {
-        $tokenStorage = $this->getMockBuilder('Symfony\Component\Security\Core\SecurityContextInterface')->getMock();
+        $this->iniSet('error_reporting', -1 & ~E_USER_DEPRECATED);
+
+        $tokenStorage = $this->getMock('Symfony\Component\Security\Core\SecurityContextInterface');
         $collector = new SecurityDataCollector($tokenStorage, $this->getRoleHierarchy());
         $collector->collect($this->getRequest(), $this->getResponse());
 
@@ -111,11 +103,6 @@ class SecurityDataCollectorTest extends TestCase
                 array('ROLE_ADMIN'),
                 array('ROLE_USER', 'ROLE_ALLOWED_TO_SWITCH'),
             ),
-            array(
-                array('ROLE_ADMIN', 'ROLE_OPERATOR'),
-                array('ROLE_ADMIN', 'ROLE_OPERATOR'),
-                array('ROLE_USER', 'ROLE_ALLOWED_TO_SWITCH'),
-            ),
         );
     }
 
@@ -123,7 +110,6 @@ class SecurityDataCollectorTest extends TestCase
     {
         return new RoleHierarchy(array(
             'ROLE_ADMIN' => array('ROLE_USER', 'ROLE_ALLOWED_TO_SWITCH'),
-            'ROLE_OPERATOR' => array('ROLE_USER'),
         ));
     }
 

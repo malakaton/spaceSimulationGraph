@@ -11,11 +11,10 @@
 
 namespace Symfony\Component\Security\Acl\Tests\Domain;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Acl\Domain\RoleSecurityIdentity;
 use Symfony\Component\Security\Acl\Domain\UserSecurityIdentity;
 
-class UserSecurityIdentityTest extends TestCase
+class UserSecurityIdentityTest extends \PHPUnit_Framework_TestCase
 {
     public function testConstructor()
     {
@@ -45,15 +44,15 @@ class UserSecurityIdentityTest extends TestCase
     public function getCompareData()
     {
         $account = $this->getMockBuilder('Symfony\Component\Security\Core\User\UserInterface')
-            ->setMockClassName('USI_AccountImpl')
-            ->getMock();
+                            ->setMockClassName('USI_AccountImpl')
+                            ->getMock();
         $account
             ->expects($this->any())
             ->method('getUsername')
             ->will($this->returnValue('foo'))
         ;
 
-        $token = $this->getMockBuilder('Symfony\Component\Security\Core\Authentication\Token\TokenInterface')->getMock();
+        $token = $this->getMock('Symfony\Component\Security\Core\Authentication\Token\TokenInterface');
         $token
             ->expects($this->any())
             ->method('getUser')

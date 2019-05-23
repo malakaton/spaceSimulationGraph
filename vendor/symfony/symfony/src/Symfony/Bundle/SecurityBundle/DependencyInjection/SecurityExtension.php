@@ -100,6 +100,7 @@ class SecurityExtension extends Extension
         // add some required classes for compilation
         $this->addClassesToCompile(array(
             'Symfony\\Component\\Security\\Http\\Firewall',
+            'Symfony\\Component\\Security\\Core\\SecurityContext',
             'Symfony\\Component\\Security\\Core\\User\\UserProviderInterface',
             'Symfony\\Component\\Security\\Core\\Authentication\\AuthenticationProviderManager',
             'Symfony\\Component\\Security\\Core\\Authentication\\Token\\Storage\\TokenStorage',
@@ -366,7 +367,7 @@ class SecurityExtension extends Extension
         $listeners[] = new Reference('security.access_listener');
 
         // Exception listener
-        $exceptionListener = new Reference($this->createExceptionListener($container, $firewall, $id, $configuredEntryPoint ?: $defaultEntryPoint, $firewall['stateless']));
+        $exceptionListener = new Reference($this->createExceptionListener($container, $firewall, $id, $configuredEntryPoint ?: $defaultEntryPoint));
 
         return array($matcher, $listeners, $exceptionListener);
     }
@@ -509,7 +510,7 @@ class SecurityExtension extends Extension
     // Parses a <provider> tag and returns the id for the related user provider service
     private function createUserDaoProvider($name, $provider, ContainerBuilder $container)
     {
-        $name = $this->getUserProviderId($name);
+        $name = $this->getUserProviderId(strtolower($name));
 
         // Doctrine Entity and In-memory DAO provider are managed by factories
         foreach ($this->userProviderFactories as $factory) {
@@ -533,7 +534,7 @@ class SecurityExtension extends Extension
         if (isset($provider['chain'])) {
             $providers = array();
             foreach ($provider['chain']['providers'] as $providerName) {
-                $providers[] = new Reference($this->getUserProviderId($providerName));
+                $providers[] = new Reference($this->getUserProviderId(strtolower($providerName)));
             }
 
             $container
@@ -548,16 +549,15 @@ class SecurityExtension extends Extension
 
     private function getUserProviderId($name)
     {
-        return 'security.user.provider.concrete.'.strtolower($name);
+        return 'security.user.provider.concrete.'.$name;
     }
 
-    private function createExceptionListener($container, $config, $id, $defaultEntryPoint, $stateless)
+    private function createExceptionListener($container, $config, $id, $defaultEntryPoint)
     {
         $exceptionListenerId = 'security.exception_listener.'.$id;
         $listener = $container->setDefinition($exceptionListenerId, new DefinitionDecorator('security.exception_listener'));
         $listener->replaceArgument(3, $id);
         $listener->replaceArgument(4, null === $defaultEntryPoint ? null : new Reference($defaultEntryPoint));
-        $listener->replaceArgument(8, $stateless);
 
         // access denied handler setup
         if (isset($config['access_denied_handler'])) {

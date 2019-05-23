@@ -29,7 +29,7 @@ class ArrayKeyChoiceListTest extends AbstractChoiceListTest
 
     protected function createChoiceList()
     {
-        return new ArrayKeyChoiceList(array_flip($this->getChoices()));
+        return new ArrayKeyChoiceList($this->getChoices());
     }
 
     protected function getChoices()
@@ -44,11 +44,9 @@ class ArrayKeyChoiceListTest extends AbstractChoiceListTest
 
     public function testUseChoicesAsValuesByDefault()
     {
-        $list = new ArrayKeyChoiceList(array('' => 'Empty', 0 => 'Zero', 1 => 'One', '1.23' => 'Float'));
+        $list = new ArrayKeyChoiceList(array(1 => '', 3 => 0, 7 => '1', 10 => 1.23));
 
-        $this->assertSame(array('', '0', '1', '1.23'), $list->getValues());
-        $this->assertSame(array('' => '', 0 => 0, 1 => 1, '1.23' => '1.23'), $list->getChoices());
-        $this->assertSame(array('' => 'Empty', 0 => 'Zero', 1 => 'One', '1.23' => 'Float'), $list->getOriginalKeys());
+        $this->assertSame(array(1 => '', 3 => '0', 7 => '1', 10 => '1.23'), $list->getValues());
     }
 
     public function testNoChoices()
@@ -104,20 +102,31 @@ class ArrayKeyChoiceListTest extends AbstractChoiceListTest
     public function provideConvertibleChoices()
     {
         return array(
-            array(array(0 => 'Label'), array(0 => 0)),
-            array(array(1 => 'Label'), array(1 => 1)),
-            array(array('1.23' => 'Label'), array('1.23' => '1.23')),
-            array(array('foobar' => 'Label'), array('foobar' => 'foobar')),
+            array(array(0), array(0)),
+            array(array(1), array(1)),
+            array(array('0'), array(0)),
+            array(array('1'), array(1)),
+            array(array('1.23'), array('1.23')),
+            array(array('foobar'), array('foobar')),
             // The default value of choice fields is NULL. It should be treated
             // like the empty value for this choice list type
-            array(array(null => 'Label'), array('' => '')),
-            array(array('1.23' => 'Label'), array('1.23' => '1.23')),
+            array(array(null), array('')),
+            array(array(1.23), array('1.23')),
             // Always cast booleans to 0 and 1, because:
             // array(true => 'Yes', false => 'No') === array(1 => 'Yes', 0 => 'No')
             // see ChoiceTypeTest::testSetDataSingleNonExpandedAcceptsBoolean
-            array(array(true => 'Label'), array(1 => 1)),
-            array(array(false => 'Label'), array(0 => 0)),
+            array(array(true), array(1)),
+            array(array(false), array(0)),
         );
+    }
+
+    /**
+     * @dataProvider provideInvalidChoices
+     * @expectedException \Symfony\Component\Form\Exception\InvalidArgumentException
+     */
+    public function testFailIfInvalidChoices(array $choices)
+    {
+        new ArrayKeyChoiceList($choices);
     }
 
     /**
@@ -146,7 +155,7 @@ class ArrayKeyChoiceListTest extends AbstractChoiceListTest
             return $value;
         };
 
-        $list = new ArrayKeyChoiceList(array('choice' => 'Label'), $callback);
+        $list = new ArrayKeyChoiceList(array('choice'), $callback);
 
         $this->assertSame(array($converted), $list->getValues());
     }
@@ -160,7 +169,15 @@ class ArrayKeyChoiceListTest extends AbstractChoiceListTest
             array('1', '1'),
             array('1.23', '1.23'),
             array('foobar', 'foobar'),
-            array('', ''),
+            // The default value of choice fields is NULL. It should be treated
+            // like the empty value for this choice list type
+            array(null, ''),
+            array(1.23, '1.23'),
+            // Always cast booleans to 0 and 1, because:
+            // array(true => 'Yes', false => 'No') === array(1 => 'Yes', 0 => 'No')
+            // see ChoiceTypeTest::testSetDataSingleNonExpandedAcceptsBoolean
+            array(true, '1'),
+            array(false, ''),
         );
     }
 
@@ -170,11 +187,9 @@ class ArrayKeyChoiceListTest extends AbstractChoiceListTest
             return ':'.$choice;
         };
 
-        $choiceList = new ArrayKeyChoiceList(array('foo' => 'Foo', 'bar' => 'Bar', 'baz' => 'Baz'), $callback);
+        $choiceList = new ArrayKeyChoiceList(array(2 => 'foo', 7 => 'bar', 10 => 'baz'), $callback);
 
-        $this->assertSame(array(':foo', ':bar', ':baz'), $choiceList->getValues());
-        $this->assertSame(array(':foo' => 'foo', ':bar' => 'bar', ':baz' => 'baz'), $choiceList->getChoices());
-        $this->assertSame(array(':foo' => 'Foo', ':bar' => 'Bar', ':baz' => 'Baz'), $choiceList->getOriginalKeys());
+        $this->assertSame(array(2 => ':foo', 7 => ':bar', 10 => ':baz'), $choiceList->getValues());
         $this->assertSame(array(1 => 'foo', 2 => 'baz'), $choiceList->getChoicesForValues(array(1 => ':foo', 2 => ':baz')));
         $this->assertSame(array(1 => ':foo', 2 => ':baz'), $choiceList->getValuesForChoices(array(1 => 'foo', 2 => 'baz')));
     }

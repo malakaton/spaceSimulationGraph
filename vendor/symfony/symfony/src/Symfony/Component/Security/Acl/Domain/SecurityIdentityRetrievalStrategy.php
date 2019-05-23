@@ -51,7 +51,7 @@ class SecurityIdentityRetrievalStrategy implements SecurityIdentityRetrievalStra
         if (!$token instanceof AnonymousToken) {
             try {
                 $sids[] = UserSecurityIdentity::fromToken($token);
-            } catch (\InvalidArgumentException $e) {
+            } catch (\InvalidArgumentException $invalid) {
                 // ignore, user has no user security identity
             }
         }

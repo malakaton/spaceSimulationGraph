@@ -7,6 +7,7 @@ use SpaceSimulatorBundle\Entity\logHistory;
 use SpaceSimulatorBundle\Entity\logHistoryRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\Serializer\Serializer;
 
 class SimulatorService
 {
@@ -46,6 +47,7 @@ class SimulatorService
 
     public function addSimulationRequest($params) {
         try {
+            $serializer = $this->container->get('serializer');
             $numRequest = $this->setCountCalls($this->getCountCalls() + 1);
             /**
              * 10% de peticiones devuelven error
@@ -70,7 +72,7 @@ class SimulatorService
             $res = array(
                 'id' => $logHistory->getId(),
                 'closed' => $closed,
-                'res' => $logRes
+                'res' => $serializer->serialize($logRes, 'json')
             );
         } catch (\Exception $e) {
             $res = array(

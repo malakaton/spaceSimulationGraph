@@ -12,7 +12,6 @@
 namespace Symfony\Component\Console\Helper;
 
 use Symfony\Component\Console\Output\NullOutput;
-use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -122,7 +121,7 @@ class ProgressHelper extends Helper
     public function __construct($triggerDeprecationError = true)
     {
         if ($triggerDeprecationError) {
-            @trigger_error('The '.__CLASS__.' class is deprecated since version 2.5 and will be removed in 3.0. Use the Symfony\Component\Console\Helper\ProgressBar class instead.', E_USER_DEPRECATED);
+            trigger_error('The '.__CLASS__.' class is deprecated since version 2.5 and will be removed in 3.0. Use the Symfony\Component\Console\Helper\ProgressBar class instead.', E_USER_DEPRECATED);
         }
     }
 
@@ -194,10 +193,6 @@ class ProgressHelper extends Helper
      */
     public function start(OutputInterface $output, $max = null)
     {
-        if ($output instanceof ConsoleOutputInterface) {
-            $output = $output->getErrorOutput();
-        }
-
         $this->startTime = time();
         $this->current = 0;
         $this->max = (int) $max;
@@ -371,6 +366,8 @@ class ProgressHelper extends Helper
         }
 
         if (isset($this->formatVars['bar'])) {
+            $completeBars = 0;
+
             if ($this->max > 0) {
                 $completeBars = floor($percent * $this->barWidth);
             } else {

@@ -20,16 +20,10 @@
         "symfony/filesystem": "~2.3"
     },
     "require-dev": {
-        "symfony/yaml": "~2.7"
-    },
-    "suggest": {
-        "symfony/yaml": "To use the yaml reference dumper"
+        "symfony/phpunit-bridge": "~2.7"
     },
     "autoload": {
-        "psr-4": { "Symfony\\Component\\Config\\": "" },
-        "exclude-from-classmap": [
-            "/Tests/"
-        ]
+        "psr-4": { "Symfony\\Component\\Config\\": "" }
     },
     "minimum-stability": "dev",
     "extra": {

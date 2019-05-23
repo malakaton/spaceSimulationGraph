@@ -51,11 +51,11 @@ class DateType extends AbstractType
             throw new InvalidOptionsException('The "format" option must be one of the IntlDateFormatter constants (FULL, LONG, MEDIUM, SHORT) or a string representing a custom format.');
         }
 
-        if ('single_text' === $options['widget']) {
-            if (null !== $pattern && false === strpos($pattern, 'y') && false === strpos($pattern, 'M') && false === strpos($pattern, 'd')) {
-                throw new InvalidOptionsException(sprintf('The "format" option should contain the letters "y", "M" or "d". Its current value is "%s".', $pattern));
-            }
+        if (null !== $pattern && (false === strpos($pattern, 'y') || false === strpos($pattern, 'M') || false === strpos($pattern, 'd'))) {
+            throw new InvalidOptionsException(sprintf('The "format" option should contain the letters "y", "M" and "d". Its current value is "%s".', $pattern));
+        }
 
+        if ('single_text' === $options['widget']) {
             $builder->addViewTransformer(new DateTimeToLocalizedStringTransformer(
                 $options['model_timezone'],
                 $options['view_timezone'],
@@ -65,10 +65,6 @@ class DateType extends AbstractType
                 $pattern
             ));
         } else {
-            if (null !== $pattern && (false === strpos($pattern, 'y') || false === strpos($pattern, 'M') || false === strpos($pattern, 'd'))) {
-                throw new InvalidOptionsException(sprintf('The "format" option should contain the letters "y", "M" and "d". Its current value is "%s".', $pattern));
-            }
-
             $yearOptions = $monthOptions = $dayOptions = array(
                 'error_bubbling' => true,
             );
@@ -77,13 +73,12 @@ class DateType extends AbstractType
                 \Locale::getDefault(),
                 $dateFormat,
                 $timeFormat,
-                // see https://bugs.php.net/bug.php?id=66323
-                class_exists('IntlTimeZone', false) ? \IntlTimeZone::createDefault() : null,
+                null,
                 $calendar,
                 $pattern
             );
 
-            // new \IntlDateFormatter may return null instead of false in case of failure, see https://bugs.php.net/bug.php?id=66323
+            // new \intlDateFormatter may return null instead of false in case of failure, see https://bugs.php.net/bug.php?id=66323
             if (!$formatter) {
                 throw new InvalidOptionsException(intl_get_error_message(), intl_get_error_code());
             }
@@ -93,13 +88,10 @@ class DateType extends AbstractType
             if ('choice' === $options['widget']) {
                 // Only pass a subset of the options to children
                 $yearOptions['choices'] = $this->formatTimestamps($formatter, '/y+/', $this->listYears($options['years']));
-                $yearOptions['choices_as_values'] = true;
                 $yearOptions['placeholder'] = $options['placeholder']['year'];
                 $monthOptions['choices'] = $this->formatTimestamps($formatter, '/[M|L]+/', $this->listMonths($options['months']));
-                $monthOptions['choices_as_values'] = true;
                 $monthOptions['placeholder'] = $options['placeholder']['month'];
                 $dayOptions['choices'] = $this->formatTimestamps($formatter, '/d+/', $this->listDays($options['days']));
-                $dayOptions['choices_as_values'] = true;
                 $dayOptions['placeholder'] = $options['placeholder']['day'];
             }
 
@@ -154,10 +146,6 @@ class DateType extends AbstractType
 
             // remove special characters unless the format was explicitly specified
             if (!is_string($options['format'])) {
-                // remove quoted strings first
-                $pattern = preg_replace('/\'[^\']+\'/', '', $pattern);
-
-                // remove remaining special chars
                 $pattern = preg_replace('/[^yMd]+/', '', $pattern);
             }
 
@@ -180,20 +168,18 @@ class DateType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $compound = function (Options $options) {
-            return 'single_text' !== $options['widget'];
+            return $options['widget'] !== 'single_text';
         };
 
-        $placeholder = $placeholderDefault = function (Options $options) {
+        $emptyValue = $placeholderDefault = function (Options $options) {
             return $options['required'] ? null : '';
         };
 
+        $placeholder = function (Options $options) {
+            return $options['empty_value'];
+        };
+
         $placeholderNormalizer = function (Options $options, $placeholder) use ($placeholderDefault) {
-            if (ChoiceType::DEPRECATED_EMPTY_VALUE !== $options['empty_value']) {
-                @trigger_error('The form option "empty_value" is deprecated since version 2.6 and will be removed in 3.0. Use "placeholder" instead.', E_USER_DEPRECATED);
-
-                $placeholder = $options['empty_value'];
-            }
-
             if (is_array($placeholder)) {
                 $default = $placeholderDefault($options);
 
@@ -211,7 +197,7 @@ class DateType extends AbstractType
         };
 
         $format = function (Options $options) {
-            return 'single_text' === $options['widget'] ? DateType::HTML5_FORMAT : DateType::DEFAULT_FORMAT;
+            return $options['widget'] === 'single_text' ? DateType::HTML5_FORMAT : DateType::DEFAULT_FORMAT;
         };
 
         $resolver->setDefaults(array(
@@ -223,7 +209,7 @@ class DateType extends AbstractType
             'format' => $format,
             'model_timezone' => null,
             'view_timezone' => null,
-            'empty_value' => ChoiceType::DEPRECATED_EMPTY_VALUE,
+            'empty_value' => $emptyValue, // deprecated
             'placeholder' => $placeholder,
             'html5' => true,
             // Don't modify \DateTime classes by reference, we treat
@@ -238,6 +224,7 @@ class DateType extends AbstractType
             'compound' => $compound,
         ));
 
+        $resolver->setNormalizer('empty_value', $placeholderNormalizer);
         $resolver->setNormalizer('placeholder', $placeholderNormalizer);
 
         $resolver->setAllowedValues('input', array(
@@ -270,9 +257,8 @@ class DateType extends AbstractType
     {
         $pattern = $formatter->getPattern();
         $timezone = $formatter->getTimezoneId();
-        $formattedTimestamps = array();
 
-        if ($setTimeZone = \PHP_VERSION_ID >= 50500 || method_exists($formatter, 'setTimeZone')) {
+        if ($setTimeZone = method_exists($formatter, 'setTimeZone')) {
             $formatter->setTimeZone('UTC');
         } else {
             $formatter->setTimeZoneId('UTC');
@@ -281,8 +267,8 @@ class DateType extends AbstractType
         if (preg_match($regex, $pattern, $matches)) {
             $formatter->setPattern($matches[0]);
 
-            foreach ($timestamps as $timestamp => $choice) {
-                $formattedTimestamps[$formatter->format($timestamp)] = $choice;
+            foreach ($timestamps as $key => $timestamp) {
+                $timestamps[$key] = $formatter->format($timestamp);
             }
 
             // I'd like to clone the formatter above, but then we get a
@@ -296,7 +282,7 @@ class DateType extends AbstractType
             $formatter->setTimeZoneId($timezone);
         }
 
-        return $formattedTimestamps;
+        return $timestamps;
     }
 
     private function listYears(array $years)
@@ -305,7 +291,7 @@ class DateType extends AbstractType
 
         foreach ($years as $year) {
             if (false !== $y = gmmktime(0, 0, 0, 6, 15, $year)) {
-                $result[$y] = $year;
+                $result[$year] = $y;
             }
         }
 
@@ -317,7 +303,7 @@ class DateType extends AbstractType
         $result = array();
 
         foreach ($months as $month) {
-            $result[gmmktime(0, 0, 0, $month, 15)] = $month;
+            $result[$month] = gmmktime(0, 0, 0, $month, 15);
         }
 
         return $result;
@@ -328,7 +314,7 @@ class DateType extends AbstractType
         $result = array();
 
         foreach ($days as $day) {
-            $result[gmmktime(0, 0, 0, 5, $day)] = $day;
+            $result[$day] = gmmktime(0, 0, 0, 5, $day);
         }
 
         return $result;

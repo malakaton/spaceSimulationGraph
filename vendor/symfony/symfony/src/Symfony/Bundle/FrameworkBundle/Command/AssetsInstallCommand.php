@@ -38,7 +38,7 @@ class AssetsInstallCommand extends ContainerAwareCommand
             ->addOption('symlink', null, InputOption::VALUE_NONE, 'Symlinks the assets instead of copying it')
             ->addOption('relative', null, InputOption::VALUE_NONE, 'Make relative symlinks')
             ->setDescription('Installs bundles web assets under a public web directory')
-            ->setHelp(<<<'EOT'
+            ->setHelp(<<<EOT
 The <info>%command.name%</info> command installs bundle assets into a given
 directory (e.g. the <comment>web</comment> directory).
 
@@ -89,7 +89,6 @@ EOT
             $output->writeln('Installing assets as <comment>hard copies</comment>.');
         }
 
-        $validAssetDirs = array();
         foreach ($this->getContainer()->get('kernel')->getBundles() as $bundle) {
             if (is_dir($originDir = $bundle->getPath().'/Resources/public')) {
                 $targetDir = $bundlesDir.preg_replace('/bundle$/', '', strtolower($bundle->getName()));
@@ -132,13 +131,6 @@ EOT
                 } else {
                     $this->hardCopy($originDir, $targetDir);
                 }
-                $validAssetDirs[] = $targetDir;
-            }
-        }
-        // remove the assets of the bundles that no longer exist
-        foreach (new \FilesystemIterator($bundlesDir) as $dir) {
-            if (!in_array($dir, $validAssetDirs)) {
-                $filesystem->remove($dir);
             }
         }
     }

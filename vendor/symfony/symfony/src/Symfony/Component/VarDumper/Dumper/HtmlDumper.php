@@ -31,10 +31,11 @@ class HtmlDumper extends CliDumper
     protected $headerIsDumped = false;
     protected $lastDepth = -1;
     protected $styles = array(
-        'default' => 'background-color:#18171B; color:#FF8400; line-height:1.2em; font:12px Menlo, Monaco, Consolas, monospace; word-wrap: break-word; white-space: pre-wrap; position:relative; z-index:99999; word-break: normal',
+        'default' => 'background-color:#18171B; color:#FF8400; line-height:1.2em; font:12px Menlo, Monaco, Consolas, monospace; word-wrap: break-word; white-space: pre-wrap; position:relative; z-index:100000',
         'num' => 'font-weight:bold; color:#1299DA',
         'const' => 'font-weight:bold',
         'str' => 'font-weight:bold; color:#56DB3A',
+        'cchr' => 'color:#FF8400',
         'note' => 'color:#1299DA',
         'ref' => 'color:#A0A0A0',
         'public' => 'color:#FFFFFF',
@@ -48,10 +49,13 @@ class HtmlDumper extends CliDumper
     /**
      * {@inheritdoc}
      */
-    public function __construct($output = null, $charset = null)
+    public function setOutput($output)
     {
-        AbstractDumper::__construct($output, $charset);
-        $this->dumpId = 'sf-dump-'.mt_rand();
+        if ($output !== $prev = parent::setOutput($output)) {
+            $this->headerIsDumped = false;
+        }
+
+        return $prev;
     }
 
     /**
@@ -66,7 +70,7 @@ class HtmlDumper extends CliDumper
     /**
      * Sets an HTML header that will be dumped once in the output stream.
      *
-     * @param string $header An HTML string
+     * @param string $header An HTML string.
      */
     public function setDumpHeader($header)
     {
@@ -76,8 +80,8 @@ class HtmlDumper extends CliDumper
     /**
      * Sets an HTML prefix and suffix that will encapse every single dump.
      *
-     * @param string $prefix The prepended HTML string
-     * @param string $suffix The appended HTML string
+     * @param string $prefix The prepended HTML string.
+     * @param string $suffix The appended HTML string.
      */
     public function setDumpBoundaries($prefix, $suffix)
     {
@@ -90,8 +94,8 @@ class HtmlDumper extends CliDumper
      */
     public function dump(Data $data, $output = null)
     {
-        parent::dump($data, $output);
         $this->dumpId = 'sf-dump-'.mt_rand();
+        parent::dump($data, $output);
     }
 
     /**
@@ -99,7 +103,7 @@ class HtmlDumper extends CliDumper
      */
     protected function getDumpHeader()
     {
-        $this->headerIsDumped = null !== $this->outputStream ? $this->outputStream : $this->lineDumper;
+        $this->headerIsDumped = true;
 
         if (null !== $this->dumpHeader) {
             return $this->dumpHeader;
@@ -112,12 +116,11 @@ Sfdump = window.Sfdump || (function (doc) {
 var refStyle = doc.createElement('style'),
     rxEsc = /([.*+?^${}()|\[\]\/\\])/g,
     idRx = /\bsf-dump-\d+-ref[012]\w+\b/,
-    keyHint = 0 <= navigator.platform.toUpperCase().indexOf('MAC') ? 'Cmd' : 'Ctrl',
     addEventListener = function (e, n, cb) {
         e.addEventListener(n, cb, false);
     };
 
-(doc.documentElement.firstElementChild || doc.documentElement.children[0]).appendChild(refStyle);
+doc.documentElement.firstChild.appendChild(refStyle);
 
 if (!doc.addEventListener) {
     addEventListener = function (element, eventName, callback) {
@@ -252,7 +255,7 @@ return function (root) {
             } else {
                 a.innerHTML += ' ';
             }
-            a.title = (a.title ? a.title+'\n[' : '[')+keyHint+'+click] Expand all children';
+            a.title = (a.title ? a.title+'\n' : '')+'[Ctrl+click] Expand all children';
             a.innerHTML += '<span>▼</span>';
             a.className += ' sf-dump-toggle';
             if ('sf-dump' != elt.parentNode.className) {
@@ -288,7 +291,8 @@ return function (root) {
 };
 
 })(document);
-</script><style>
+</script>
+<style>
 pre.sf-dump {
     display: block;
     white-space: pre;
@@ -361,7 +365,11 @@ EOHTML;
             return '';
         }
 
-        $v = esc($value);
+        $v = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+        $v = preg_replace_callback(self::$controlCharsRx, function ($r) {
+            // Use Unicode Control Pictures - see http://www.unicode.org/charts/PDF/U2400.pdf
+            return sprintf('<span class=sf-dump-cchr title=\\x%02X>&#%d;</span>', ord($r[0]), "\x7F" !== $r[0] ? 0x2400 + ord($r[0]) : 0x2421);
+        }, $v);
 
         if ('ref' === $style) {
             if (empty($attr['count'])) {
@@ -372,55 +380,36 @@ EOHTML;
             return sprintf('<a class=sf-dump-ref href=#%s-ref%s title="%d occurrences">%s</a>', $this->dumpId, $r, 1 + $attr['count'], $v);
         }
 
-        if ('const' === $style && isset($attr['value'])) {
-            $style .= sprintf(' title="%s"', esc(is_scalar($attr['value']) ? $attr['value'] : json_encode($attr['value'])));
+        if ('const' === $style && array_key_exists('value', $attr)) {
+            $style .= sprintf(' title="%s"', htmlspecialchars(json_encode($attr['value']), ENT_QUOTES, 'UTF-8'));
         } elseif ('public' === $style) {
             $style .= sprintf(' title="%s"', empty($attr['dynamic']) ? 'Public property' : 'Runtime added dynamic property');
         } elseif ('str' === $style && 1 < $attr['length']) {
-            $style .= sprintf(' title="%d%s characters"', $attr['length'], $attr['binary'] ? ' binary or non-UTF-8' : '');
-        } elseif ('note' === $style && false !== $c = strrpos($v, '\\')) {
-            return sprintf('<abbr title="%s" class=sf-dump-%s>%s</abbr>', $v, $style, substr($v, $c + 1));
+            $style .= sprintf(' title="%s%s characters"', $attr['length'], $attr['binary'] ? ' binary or non-UTF-8' : '');
+        } elseif ('note' === $style) {
+            if (false !== $c = strrpos($v, '\\')) {
+                return sprintf('<abbr title="%s" class=sf-dump-%s>%s</abbr>', $v, $style, substr($v, $c+1));
+            } elseif (':' === $v[0]) {
+                return sprintf('<abbr title="`%s` resource" class=sf-dump-%s>%s</abbr>', substr($v, 1), $style, $v);
+            }
         } elseif ('protected' === $style) {
             $style .= ' title="Protected property"';
         } elseif ('private' === $style) {
-            $style .= sprintf(' title="Private property defined in class:&#10;`%s`"', esc($attr['class']));
+            $style .= sprintf(' title="Private property defined in class:&#10;`%s`"', $attr['class']);
         }
 
-        $map = static::$controlCharsMap;
-        $style = "<span class=sf-dump-{$style}>";
-        $v = preg_replace_callback(static::$controlCharsRx, function ($c) use ($map, $style) {
-            $s = '</span>';
-            $c = $c[$i = 0];
-            do {
-                $s .= isset($map[$c[$i]]) ? $map[$c[$i]] : sprintf('\x%02X', ord($c[$i]));
-            } while (isset($c[++$i]));
-
-            return $s.$style;
-        }, $v, -1, $cchrCount);
-
-        if ($cchrCount && '<' === $v[0]) {
-            $v = substr($v, 7);
-        } else {
-            $v = $style.$v;
-        }
-        if ($cchrCount && '>' === substr($v, -1)) {
-            $v = substr($v, 0, -strlen($style));
-        } else {
-            $v .= '</span>';
-        }
-
-        return $v;
+        return "<span class=sf-dump-$style>$v</span>";
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function dumpLine($depth, $endOfValue = false)
+    protected function dumpLine($depth)
     {
         if (-1 === $this->lastDepth) {
             $this->line = sprintf($this->dumpPrefix, $this->dumpId, $this->indentPad).$this->line;
         }
-        if ($this->headerIsDumped !== (null !== $this->outputStream ? $this->outputStream : $this->lineDumper)) {
+        if (!$this->headerIsDumped) {
             $this->line = $this->getDumpHeader().$this->line;
         }
 
@@ -441,7 +430,7 @@ EOHTML;
                     if (0xF0 <= $m[$i]) {
                         $c = (($m[$i++] - 0xF0) << 18) + (($m[$i++] - 0x80) << 12) + (($m[$i++] - 0x80) << 6) + $m[$i++] - 0x80;
                     } elseif (0xE0 <= $m[$i]) {
-                        $c = (($m[$i++] - 0xE0) << 12) + (($m[$i++] - 0x80) << 6) + $m[$i++] - 0x80;
+                        $c = (($m[$i++] - 0xE0) << 12) + (($m[$i++] - 0x80) << 6) + $m[$i++]  - 0x80;
                     } else {
                         $c = (($m[$i++] - 0xC0) << 6) + $m[$i++] - 0x80;
                     }
@@ -459,9 +448,4 @@ EOHTML;
         }
         AbstractDumper::dumpLine($depth);
     }
-}
-
-function esc($str)
-{
-    return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
 }

@@ -16,7 +16,6 @@ use Symfony\Component\Routing\Annotation\Route;
 class AnnotationClassLoaderTest extends AbstractAnnotationLoaderTest
 {
     protected $loader;
-    private $reader;
 
     protected function setUp()
     {
@@ -136,10 +135,11 @@ class AnnotationClassLoaderTest extends AbstractAnnotationLoaderTest
             array_intersect_assoc($routeData['options'], $route->getOptions()),
             '->load preserves options annotation'
         );
+        $defaults = array_replace($methodArgs, $routeData['defaults']);
         $this->assertCount(
-            count($routeData['defaults']),
-            $route->getDefaults(),
-            '->load preserves defaults annotation'
+            count($defaults),
+            array_intersect_assoc($defaults, $route->getDefaults()),
+            '->load preserves defaults annotation and merges them with default arguments in method signature'
         );
         $this->assertEquals($routeData['schemes'], $route->getSchemes(), '->load preserves schemes annotation');
         $this->assertEquals($routeData['methods'], $route->getMethods(), '->load preserves methods annotation');
@@ -151,14 +151,14 @@ class AnnotationClassLoaderTest extends AbstractAnnotationLoaderTest
         $classRouteData = array(
             'path' => '/prefix',
             'schemes' => array('https'),
-            'methods' => array('GET'),
+            'methods' => array('GET')
         );
 
         $methodRouteData = array(
             'name' => 'route1',
             'path' => '/path',
             'schemes' => array('http'),
-            'methods' => array('POST', 'PUT'),
+            'methods' => array('POST', 'PUT')
         );
 
         $this->reader

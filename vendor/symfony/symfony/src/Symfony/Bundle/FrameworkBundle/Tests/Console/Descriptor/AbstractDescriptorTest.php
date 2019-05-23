@@ -11,7 +11,6 @@
 
 namespace Symfony\Bundle\FrameworkBundle\Tests\Console\Descriptor;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -21,7 +20,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 
-abstract class AbstractDescriptorTest extends TestCase
+abstract class AbstractDescriptorTest extends \PHPUnit_Framework_TestCase
 {
     /** @dataProvider getDescribeRouteCollectionTestData */
     public function testDescribeRouteCollection(RouteCollection $routes, $expectedDescription)
@@ -73,11 +72,15 @@ abstract class AbstractDescriptorTest extends TestCase
      */
     public function testLegacyDescribeSynchronizedServiceDefinition(Definition $definition, $expectedDescription)
     {
+        $this->iniSet('error_reporting', -1 & ~E_USER_DEPRECATED);
+
         $this->assertDescription($expectedDescription, $definition);
     }
 
     public function provideLegacySynchronizedServiceDefinitionTestData()
     {
+        $this->iniSet('error_reporting', -1 & ~E_USER_DEPRECATED);
+
         return $this->getDescriptionTestData(ObjectsProvider::getLegacyContainerDefinitions());
     }
 
@@ -113,8 +116,7 @@ abstract class AbstractDescriptorTest extends TestCase
     {
         $data = $this->getDescriptionTestData(ObjectsProvider::getContainerParameter());
 
-        $data[0][] = array('parameter' => 'database_name');
-        $data[1][] = array('parameter' => 'twig.form.resources');
+        array_push($data[0], array('parameter' => 'database_name'));
 
         return $data;
     }
@@ -142,7 +144,6 @@ abstract class AbstractDescriptorTest extends TestCase
     }
 
     abstract protected function getDescriptor();
-
     abstract protected function getFormat();
 
     private function assertDescription($expectedDescription, $describedObject, array $options = array())

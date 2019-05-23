@@ -11,12 +11,11 @@
 
 namespace Symfony\Bundle\WebProfilerBundle\Tests\Command;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\WebProfilerBundle\Command\ImportCommand;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\HttpKernel\Profiler\Profile;
 
-class ImportCommandTest extends TestCase
+class ImportCommandTest extends \PHPUnit_Framework_TestCase
 {
     public function testExecute()
     {

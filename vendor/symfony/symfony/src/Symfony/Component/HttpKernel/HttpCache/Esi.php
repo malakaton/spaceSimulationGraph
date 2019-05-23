@@ -37,7 +37,7 @@ class Esi implements SurrogateInterface
     /**
      * Constructor.
      *
-     * @param array $contentTypes An array of content-type that should be parsed for ESI information
+     * @param array $contentTypes An array of content-type that should be parsed for ESI information.
      *                            (default: text/html, text/xml, application/xhtml+xml, and application/xml)
      */
     public function __construct(array $contentTypes = array('text/html', 'text/xml', 'application/xhtml+xml', 'application/xml'))
@@ -87,7 +87,7 @@ class Esi implements SurrogateInterface
      */
     public function hasSurrogateEsiCapability(Request $request)
     {
-        @trigger_error('The '.__METHOD__.' method is deprecated since version 2.6 and will be removed in 3.0. Use the hasSurrogateCapability() method instead.', E_USER_DEPRECATED);
+        trigger_error('The '.__METHOD__.' method is deprecated since version 2.6 and will be removed in 3.0. Use the hasSurrogateCapability() method instead.', E_USER_DEPRECATED);
 
         return $this->hasSurrogateCapability($request);
     }
@@ -114,7 +114,7 @@ class Esi implements SurrogateInterface
      */
     public function addSurrogateEsiCapability(Request $request)
     {
-        @trigger_error('The '.__METHOD__.' method is deprecated since version 2.6 and will be removed in 3.0. Use the addSurrogateCapability() method instead.', E_USER_DEPRECATED);
+        trigger_error('The '.__METHOD__.' method is deprecated since version 2.6 and will be removed in 3.0. Use the addSurrogateCapability() method instead.', E_USER_DEPRECATED);
 
         $this->addSurrogateCapability($request);
     }
@@ -160,7 +160,7 @@ class Esi implements SurrogateInterface
      */
     public function needsEsiParsing(Response $response)
     {
-        @trigger_error('The '.__METHOD__.' method is deprecated since version 2.6 and will be removed in 3.0. Use the needsParsing() method instead.', E_USER_DEPRECATED);
+        trigger_error('The '.__METHOD__.' method is deprecated since version 2.6 and will be removed in 3.0. Use the needsParsing() method instead.', E_USER_DEPRECATED);
 
         return $this->needsParsing($response);
     }
@@ -200,6 +200,7 @@ class Esi implements SurrogateInterface
      */
     public function process(Request $request, Response $response)
     {
+        $this->request = $request;
         $type = $response->headers->get('Content-Type');
         if (empty($type)) {
             $type = 'text/html';
@@ -212,8 +213,8 @@ class Esi implements SurrogateInterface
 
         // we don't use a proper XML parser here as we can have ESI tags in a plain text response
         $content = $response->getContent();
-        $content = preg_replace('#<esi\:remove>.*?</esi\:remove>#s', '', $content);
-        $content = preg_replace('#<esi\:comment[^>]+>#s', '', $content);
+        $content = preg_replace('#<esi\:remove>.*?</esi\:remove>#', '', $content);
+        $content = preg_replace('#<esi\:comment[^>]*(?:/|</esi\:comment)>#', '', $content);
 
         $chunks = preg_split('#<esi\:include\s+(.*?)\s*(?:/|</esi\:include)>#', $content, -1, PREG_SPLIT_DELIM_CAPTURE);
         $chunks[0] = str_replace($this->phpEscapeMap[0], $this->phpEscapeMap[1], $chunks[0]);
@@ -233,7 +234,7 @@ class Esi implements SurrogateInterface
             $chunks[$i] = sprintf('<?php echo $this->surrogate->handle($this, %s, %s, %s) ?>'."\n",
                 var_export($options['src'], true),
                 var_export(isset($options['alt']) ? $options['alt'] : '', true),
-                isset($options['onerror']) && 'continue' === $options['onerror'] ? 'true' : 'false'
+                isset($options['onerror']) && 'continue' == $options['onerror'] ? 'true' : 'false'
             );
             ++$i;
             $chunks[$i] = str_replace($this->phpEscapeMap[0], $this->phpEscapeMap[1], $chunks[$i]);

@@ -84,14 +84,7 @@ class ExpressionLanguage
             return $expression;
         }
 
-        asort($names);
-        $cacheKeyItems = array();
-
-        foreach ($names as $nameKey => $name) {
-            $cacheKeyItems[] = is_int($nameKey) ? $name : $nameKey.':'.$name;
-        }
-
-        $key = $expression.'//'.implode('|', $cacheKeyItems);
+        $key = $expression.'//'.implode('-', $names);
 
         if (null === $parsedExpression = $this->cache->fetch($key)) {
             $nodes = $this->getParser()->parse($this->getLexer()->tokenize((string) $expression), $names);
@@ -110,16 +103,10 @@ class ExpressionLanguage
      * @param callable $compiler  A callable able to compile the function
      * @param callable $evaluator A callable able to evaluate the function
      *
-     * @throws \LogicException when registering a function after calling evaluate(), compile() or parse()
-     *
      * @see ExpressionFunction
      */
     public function register($name, $compiler, $evaluator)
     {
-        if (null !== $this->parser) {
-            throw new \LogicException('Registering functions after calling evaluate(), compile() or parse() is not supported.');
-        }
-
         $this->functions[$name] = array('compiler' => $compiler, 'evaluator' => $evaluator);
     }
 

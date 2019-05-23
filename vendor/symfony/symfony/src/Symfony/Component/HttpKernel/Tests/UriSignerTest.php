@@ -11,10 +11,9 @@
 
 namespace Symfony\Component\HttpKernel\Tests;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpKernel\UriSigner;
 
-class UriSignerTest extends TestCase
+class UriSignerTest extends \PHPUnit_Framework_TestCase
 {
     public function testSign()
     {
@@ -34,7 +33,6 @@ class UriSignerTest extends TestCase
 
         $this->assertTrue($signer->check($signer->sign('http://example.com/foo')));
         $this->assertTrue($signer->check($signer->sign('http://example.com/foo?foo=bar')));
-        $this->assertTrue($signer->check($signer->sign('http://example.com/foo?foo=bar&0=integer')));
 
         $this->assertTrue($signer->sign('http://example.com/foo?foo=bar&bar=foo') === $signer->sign('http://example.com/foo?bar=foo&foo=bar'));
     }
@@ -45,7 +43,7 @@ class UriSignerTest extends TestCase
         $signer = new UriSigner('foobar');
 
         $this->assertSame(
-            'http://example.com/foo?baz=bay&foo=bar&_hash=rIOcC%2FF3DoEGo%2FvnESjSp7uU9zA9S%2F%2BOLhxgMexoPUM%3D',
+            "http://example.com/foo?baz=bay&foo=bar&_hash=rIOcC%2FF3DoEGo%2FvnESjSp7uU9zA9S%2F%2BOLhxgMexoPUM%3D",
             $signer->sign('http://example.com/foo?foo=bar&baz=bay')
         );
         $this->assertTrue($signer->check($signer->sign('http://example.com/foo?foo=bar&baz=bay')));

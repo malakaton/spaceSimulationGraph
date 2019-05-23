@@ -11,13 +11,18 @@
 
 namespace Symfony\Component\Translation\Tests;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Translation\Translator;
 use Symfony\Component\Translation\DataCollectorTranslator;
 use Symfony\Component\Translation\Loader\ArrayLoader;
 
-class DataCollectorTranslatorTest extends TestCase
+class DataCollectorTranslatorTest extends \PHPUnit_Framework_TestCase
 {
+    protected function setUp()
+    {
+        if (!class_exists('Symfony\Component\HttpKernel\DataCollector\DataCollector')) {
+            $this->markTestSkipped('The "DataCollector" is not available');
+        }
+    }
     public function testCollectMessages()
     {
         $collector = $this->createCollector();
@@ -69,6 +74,8 @@ class DataCollectorTranslatorTest extends TestCase
         $translator->addResource('array', array('bar' => 'bar (fr)'), 'fr');
         $translator->addResource('array', array('bar_ru' => 'bar (ru)'), 'ru');
 
-        return new DataCollectorTranslator($translator);
+        $collector = new DataCollectorTranslator($translator);
+
+        return $collector;
     }
 }

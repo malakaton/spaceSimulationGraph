@@ -11,17 +11,16 @@
 
 namespace Symfony\Bridge\Doctrine\Tests\Logger;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\Doctrine\Logger\DbalLogger;
 
-class DbalLoggerTest extends TestCase
+class DbalLoggerTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @dataProvider getLogFixtures
      */
     public function testLog($sql, $params, $logParams)
     {
-        $logger = $this->getMockBuilder('Psr\\Log\\LoggerInterface')->getMock();
+        $logger = $this->getMock('Psr\\Log\\LoggerInterface');
 
         $dbalLogger = $this
             ->getMockBuilder('Symfony\\Bridge\\Doctrine\\Logger\\DbalLogger')
@@ -53,7 +52,7 @@ class DbalLoggerTest extends TestCase
 
     public function testLogNonUtf8()
     {
-        $logger = $this->getMockBuilder('Psr\\Log\\LoggerInterface')->getMock();
+        $logger = $this->getMock('Psr\\Log\\LoggerInterface');
 
         $dbalLogger = $this
             ->getMockBuilder('Symfony\\Bridge\\Doctrine\\Logger\\DbalLogger')
@@ -74,40 +73,9 @@ class DbalLoggerTest extends TestCase
         ));
     }
 
-    public function testLogNonUtf8Array()
-    {
-        $logger = $this->getMockBuilder('Psr\\Log\\LoggerInterface')->getMock();
-
-        $dbalLogger = $this
-            ->getMockBuilder('Symfony\\Bridge\\Doctrine\\Logger\\DbalLogger')
-            ->setConstructorArgs(array($logger, null))
-            ->setMethods(array('log'))
-            ->getMock()
-        ;
-
-        $dbalLogger
-            ->expects($this->once())
-            ->method('log')
-            ->with('SQL', array(
-                    'utf8' => 'foo',
-                    array(
-                        'nonutf8' => DbalLogger::BINARY_DATA_VALUE,
-                    ),
-                )
-            )
-        ;
-
-        $dbalLogger->startQuery('SQL', array(
-            'utf8' => 'foo',
-            array(
-                'nonutf8' => "\x7F\xFF",
-            ),
-        ));
-    }
-
     public function testLogLongString()
     {
-        $logger = $this->getMockBuilder('Psr\\Log\\LoggerInterface')->getMock();
+        $logger = $this->getMock('Psr\\Log\\LoggerInterface');
 
         $dbalLogger = $this
             ->getMockBuilder('Symfony\\Bridge\\Doctrine\\Logger\\DbalLogger')
@@ -133,12 +101,13 @@ class DbalLoggerTest extends TestCase
         ));
     }
 
-    /**
-     * @requires extension mbstring
-     */
     public function testLogUTF8LongString()
     {
-        $logger = $this->getMockBuilder('Psr\\Log\\LoggerInterface')->getMock();
+        if (!function_exists('mb_detect_encoding')) {
+            $this->markTestSkipped('Testing log shortening of utf8 charsets requires the mb_detect_encoding() function.');
+        }
+
+        $logger = $this->getMock('Psr\\Log\\LoggerInterface');
 
         $dbalLogger = $this
             ->getMockBuilder('Symfony\\Bridge\\Doctrine\\Logger\\DbalLogger')
@@ -161,7 +130,7 @@ class DbalLoggerTest extends TestCase
         $dbalLogger
             ->expects($this->once())
             ->method('log')
-            ->with('SQL', array('short' => $shortString, 'long' => mb_substr($longString, 0, DbalLogger::MAX_STRING_LENGTH - 6, 'UTF-8').' [...]'))
+            ->with('SQL', array('short' => $shortString, 'long' => mb_substr($longString, 0, DbalLogger::MAX_STRING_LENGTH - 6, mb_detect_encoding($longString)).' [...]'))
         ;
 
         $dbalLogger->startQuery('SQL', array(

@@ -11,8 +11,6 @@
 
 namespace Symfony\Component\Validator\Tests\Constraints;
 
-use PHPUnit\Framework\Assert;
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Constraints\NotNull;
 use Symfony\Component\Validator\ConstraintValidatorInterface;
@@ -26,9 +24,11 @@ use Symfony\Component\Validator\Mapping\PropertyMetadata;
 use Symfony\Component\Validator\Validation;
 
 /**
+ * @since 2.5.3
+ *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-abstract class AbstractConstraintValidatorTest extends TestCase
+abstract class AbstractConstraintValidatorTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var ExecutionContextInterface
@@ -51,6 +51,10 @@ abstract class AbstractConstraintValidatorTest extends TestCase
 
     protected function setUp()
     {
+        if (Validation::API_VERSION_2_5 !== $this->getApiVersion()) {
+            $this->iniSet('error_reporting', -1 & ~E_USER_DEPRECATED);
+        }
+
         $this->group = 'MyGroup';
         $this->metadata = null;
         $this->object = null;
@@ -96,9 +100,9 @@ abstract class AbstractConstraintValidatorTest extends TestCase
 
     protected function createContext()
     {
-        $translator = $this->getMockBuilder('Symfony\Component\Translation\TranslatorInterface')->getMock();
-        $validator = $this->getMockBuilder('Symfony\Component\Validator\Validator\ValidatorInterface')->getMock();
-        $contextualValidator = $this->getMockBuilder('Symfony\Component\Validator\Validator\ContextualValidatorInterface')->getMock();
+        $translator = $this->getMock('Symfony\Component\Translation\TranslatorInterface');
+        $validator = $this->getMock('Symfony\Component\Validator\Validator\ValidatorInterface');
+        $contextualValidator = $this->getMock('Symfony\Component\Validator\Validator\ContextualValidatorInterface');
 
         switch ($this->getApiVersion()) {
             case Validation::API_VERSION_2_5:
@@ -113,7 +117,7 @@ abstract class AbstractConstraintValidatorTest extends TestCase
                 $context = new LegacyExecutionContext(
                     $validator,
                     $this->root,
-                    $this->getMockBuilder('Symfony\Component\Validator\MetadataFactoryInterface')->getMock(),
+                    $this->getMock('Symfony\Component\Validator\MetadataFactoryInterface'),
                     $translator
                 );
                 break;
@@ -256,7 +260,7 @@ abstract class AbstractConstraintValidatorTest extends TestCase
      */
     protected function assertViolation($message, array $parameters = array(), $propertyPath = 'property.path', $invalidValue = 'InvalidValue', $plural = null, $code = null)
     {
-        @trigger_error('The '.__METHOD__.' method is deprecated since version 2.3 and will be removed in 3.0. Use the buildViolation() method instead.', E_USER_DEPRECATED);
+        trigger_error('The '.__METHOD__.' method is deprecated since version 2.3 and will be removed in 3.0. Use the buildViolation() method instead.', E_USER_DEPRECATED);
 
         $this->buildViolation($message)
             ->setParameters($parameters)
@@ -275,7 +279,7 @@ abstract class AbstractConstraintValidatorTest extends TestCase
      */
     protected function assertViolations(array $expected)
     {
-        @trigger_error('The '.__METHOD__.' method is deprecated since version 2.3 and will be removed in 3.0. Use the buildViolation() method instead.', E_USER_DEPRECATED);
+        trigger_error('The '.__METHOD__.' method is deprecated since version 2.3 and will be removed in 3.0. Use the buildViolation() method instead.', E_USER_DEPRECATED);
 
         $violations = $this->context->getViolations();
 
@@ -413,12 +417,12 @@ class ConstraintViolationAssertion
 
         $violations = iterator_to_array($this->context->getViolations());
 
-        Assert::assertSame($expectedCount = count($expected), $violationsCount = count($violations), sprintf('%u violation(s) expected. Got %u.', $expectedCount, $violationsCount));
+        \PHPUnit_Framework_Assert::assertSame($expectedCount = count($expected), $violationsCount = count($violations), sprintf('%u violation(s) expected. Got %u.', $expectedCount, $violationsCount));
 
         reset($violations);
 
         foreach ($expected as $violation) {
-            Assert::assertEquals($violation, current($violations));
+            \PHPUnit_Framework_Assert::assertEquals($violation, current($violations));
             next($violations);
         }
     }

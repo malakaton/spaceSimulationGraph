@@ -12,7 +12,6 @@
 namespace Symfony\Component\Serializer\Tests\Normalizer;
 
 use Doctrine\Common\Annotations\AnnotationReader;
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory;
 use Symfony\Component\Serializer\Mapping\Loader\AnnotationLoader;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
@@ -23,7 +22,7 @@ use Symfony\Component\Serializer\Tests\Fixtures\GroupDummy;
 use Symfony\Component\Serializer\Tests\Fixtures\PropertyCircularReferenceDummy;
 use Symfony\Component\Serializer\Tests\Fixtures\PropertySiblingHolder;
 
-class PropertyNormalizerTest extends TestCase
+class PropertyNormalizerTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var PropertyNormalizer
@@ -36,7 +35,7 @@ class PropertyNormalizerTest extends TestCase
 
     protected function setUp()
     {
-        $this->serializer = $this->getMockBuilder('Symfony\Component\Serializer\SerializerInterface')->getMock();
+        $this->serializer = $this->getMock('Symfony\Component\Serializer\SerializerInterface');
         $this->normalizer = new PropertyNormalizer();
         $this->normalizer->setSerializer($this->serializer);
     }
@@ -69,6 +68,8 @@ class PropertyNormalizerTest extends TestCase
      */
     public function testLegacyDenormalizeOnCamelCaseFormat()
     {
+        $this->iniSet('error_reporting', -1 & ~E_USER_DEPRECATED);
+
         $this->normalizer->setCamelizedAttributes(array('camel_case'));
         $obj = $this->normalizer->denormalize(
             array('camel_case' => 'value'),
@@ -82,6 +83,8 @@ class PropertyNormalizerTest extends TestCase
      */
     public function testLegacyCamelizedAttributesNormalize()
     {
+        $this->iniSet('error_reporting', -1 & ~E_USER_DEPRECATED);
+
         $obj = new PropertyCamelizedDummy('dunglas.fr');
         $obj->fooBar = 'les-tilleuls.coop';
         $obj->bar_foo = 'lostinthesupermarket.fr';
@@ -106,6 +109,8 @@ class PropertyNormalizerTest extends TestCase
      */
     public function testLegacyCamelizedAttributesDenormalize()
     {
+        $this->iniSet('error_reporting', -1 & ~E_USER_DEPRECATED);
+
         $obj = new PropertyCamelizedDummy('dunglas.fr');
         $obj->fooBar = 'les-tilleuls.coop';
         $obj->bar_foo = 'lostinthesupermarket.fr';
@@ -215,7 +220,7 @@ class PropertyNormalizerTest extends TestCase
 
         $this->assertEquals(array(
             'bar' => 'bar',
-        ), $this->normalizer->normalize($obj, null, array(PropertyNormalizer::GROUPS => array('c'))));
+        ), $this->normalizer->normalize($obj, null, array('groups' => array('c'))));
 
         // The PropertyNormalizer is not able to hydrate properties from parent classes
         $this->assertEquals(array(
@@ -223,7 +228,7 @@ class PropertyNormalizerTest extends TestCase
             'foo' => 'foo',
             'fooBar' => 'fooBar',
             'bar' => 'bar',
-        ), $this->normalizer->normalize($obj, null, array(PropertyNormalizer::GROUPS => array('a', 'c'))));
+        ), $this->normalizer->normalize($obj, null, array('groups' => array('a', 'c'))));
     }
 
     public function testGroupsDenormalize()
@@ -241,7 +246,7 @@ class PropertyNormalizerTest extends TestCase
             $toNormalize,
             'Symfony\Component\Serializer\Tests\Fixtures\GroupDummy',
             null,
-            array(PropertyNormalizer::GROUPS => array('a'))
+            array('groups' => array('a'))
         );
         $this->assertEquals($obj, $normalized);
 
@@ -251,7 +256,7 @@ class PropertyNormalizerTest extends TestCase
             $toNormalize,
             'Symfony\Component\Serializer\Tests\Fixtures\GroupDummy',
             null,
-            array(PropertyNormalizer::GROUPS => array('a', 'b'))
+            array('groups' => array('a', 'b'))
         );
         $this->assertEquals($obj, $normalized);
     }
@@ -273,7 +278,7 @@ class PropertyNormalizerTest extends TestCase
                 'foo_bar' => '@dunglas',
                 'symfony' => '@coopTilleuls',
             ),
-            $this->normalizer->normalize($obj, null, array(PropertyNormalizer::GROUPS => array('name_converter')))
+            $this->normalizer->normalize($obj, null, array('groups' => array('name_converter')))
         );
     }
 
@@ -294,7 +299,7 @@ class PropertyNormalizerTest extends TestCase
                 'foo_bar' => '@dunglas',
                 'symfony' => '@coopTilleuls',
                 'coop_tilleuls' => 'les-tilleuls.coop',
-            ), 'Symfony\Component\Serializer\Tests\Fixtures\GroupDummy', null, array(PropertyNormalizer::GROUPS => array('name_converter')))
+            ), 'Symfony\Component\Serializer\Tests\Fixtures\GroupDummy', null, array('groups' => array('name_converter')))
         );
     }
 
@@ -410,21 +415,13 @@ class PropertyNormalizerTest extends TestCase
         );
     }
 
-    public function testDenormalizeShouldIgnoreStaticProperty()
-    {
-        $obj = $this->normalizer->denormalize(array('outOfScope' => true), __NAMESPACE__.'\PropertyDummy');
-
-        $this->assertEquals(new PropertyDummy(), $obj);
-        $this->assertEquals('out_of_scope', PropertyDummy::$outOfScope);
-    }
-
     /**
      * @expectedException \Symfony\Component\Serializer\Exception\LogicException
      * @expectedExceptionMessage Cannot normalize attribute "bar" because injected serializer is not a normalizer
      */
     public function testUnableToNormalizeObjectAttribute()
     {
-        $serializer = $this->getMockBuilder('Symfony\Component\Serializer\SerializerInterface')->getMock();
+        $serializer = $this->getMock('Symfony\Component\Serializer\SerializerInterface');
         $this->normalizer->setSerializer($serializer);
 
         $obj = new PropertyDummy();
@@ -438,16 +435,10 @@ class PropertyNormalizerTest extends TestCase
     {
         $this->assertFalse($this->normalizer->supportsNormalization(new \ArrayObject()));
     }
-
-    public function testNoStaticPropertySupport()
-    {
-        $this->assertFalse($this->normalizer->supportsNormalization(new StaticPropertyDummy()));
-    }
 }
 
 class PropertyDummy
 {
-    public static $outOfScope = 'out_of_scope';
     public $foo;
     private $bar;
     protected $camelCase;
@@ -505,9 +496,4 @@ class PropertyCamelizedDummy
     {
         $this->kevinDunglas = $kevinDunglas;
     }
-}
-
-class StaticPropertyDummy
-{
-    private static $property = 'value';
 }

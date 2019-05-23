@@ -11,10 +11,9 @@
 
 namespace Symfony\Component\Security\Acl\Tests\Domain;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Acl\Domain\FieldEntry;
 
-class FieldEntryTest extends TestCase
+class FieldEntryTest extends \PHPUnit_Framework_TestCase
 {
     public function testConstructor()
     {
@@ -65,11 +64,11 @@ class FieldEntryTest extends TestCase
 
     protected function getAcl()
     {
-        return $this->getMockBuilder('Symfony\Component\Security\Acl\Model\AclInterface')->getMock();
+        return $this->getMock('Symfony\Component\Security\Acl\Model\AclInterface');
     }
 
     protected function getSid()
     {
-        return $this->getMockBuilder('Symfony\Component\Security\Acl\Model\SecurityIdentityInterface')->getMock();
+        return $this->getMock('Symfony\Component\Security\Acl\Model\SecurityIdentityInterface');
     }
 }

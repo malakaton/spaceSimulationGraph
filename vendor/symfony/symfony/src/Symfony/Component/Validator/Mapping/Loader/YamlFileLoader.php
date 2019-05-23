@@ -12,7 +12,6 @@
 namespace Symfony\Component\Validator\Mapping\Loader;
 
 use Symfony\Component\Validator\Mapping\ClassMetadata;
-use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Parser as YamlParser;
 
 /**
@@ -46,7 +45,13 @@ class YamlFileLoader extends FileLoader
                 $this->yamlParser = new YamlParser();
             }
 
-            $this->classes = $this->parseFile($this->file);
+            // This method may throw an exception. Do not modify the class'
+            // state before it completes
+            if (false === ($classes = $this->parseFile($this->file))) {
+                return false;
+            }
+
+            $this->classes = $classes;
 
             if (isset($this->classes['namespaces'])) {
                 foreach ($this->classes['namespaces'] as $alias => $namespace) {
@@ -105,22 +110,18 @@ class YamlFileLoader extends FileLoader
      *
      * @param string $path The path of the YAML file
      *
-     * @return array The class descriptions
+     * @return array|null The class descriptions or null, if the file was empty
      *
      * @throws \InvalidArgumentException If the file could not be loaded or did
      *                                   not contain a YAML array
      */
     private function parseFile($path)
     {
-        try {
-            $classes = $this->yamlParser->parse(file_get_contents($path));
-        } catch (ParseException $e) {
-            throw new \InvalidArgumentException(sprintf('The file "%s" does not contain valid YAML.', $path), 0, $e);
-        }
+        $classes = $this->yamlParser->parse(file_get_contents($path));
 
         // empty file
         if (null === $classes) {
-            return array();
+            return;
         }
 
         // not an array

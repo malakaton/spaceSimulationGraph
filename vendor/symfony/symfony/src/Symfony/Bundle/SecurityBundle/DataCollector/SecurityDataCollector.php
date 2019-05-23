@@ -71,7 +71,7 @@ class SecurityDataCollector extends DataCollector
             if (null !== $this->roleHierarchy) {
                 $allRoles = $this->roleHierarchy->getReachableRoles($assignedRoles);
                 foreach ($allRoles as $role) {
-                    if (!in_array($role, $assignedRoles, true)) {
+                    if (!in_array($role, $assignedRoles)) {
                         $inheritedRoles[] = $role;
                     }
                 }
@@ -81,8 +81,8 @@ class SecurityDataCollector extends DataCollector
                 'authenticated' => $token->isAuthenticated(),
                 'token_class' => get_class($token),
                 'user' => $token->getUsername(),
-                'roles' => array_map(function (RoleInterface $role) { return $role->getRole(); }, $assignedRoles),
-                'inherited_roles' => array_unique(array_map(function (RoleInterface $role) { return $role->getRole(); }, $inheritedRoles)),
+                'roles' => array_map(function (RoleInterface $role) { return $role->getRole();}, $assignedRoles),
+                'inherited_roles' => array_map(function (RoleInterface $role) { return $role->getRole(); }, $inheritedRoles),
                 'supports_role_hierarchy' => null !== $this->roleHierarchy,
             );
         }
@@ -132,7 +132,7 @@ class SecurityDataCollector extends DataCollector
      * Checks if the data contains information about inherited roles. Still the inherited
      * roles can be an empty array.
      *
-     * @return bool true if the profile was contains inherited role information
+     * @return bool true if the profile was contains inherited role information.
      */
     public function supportsRoleHierarchy()
     {

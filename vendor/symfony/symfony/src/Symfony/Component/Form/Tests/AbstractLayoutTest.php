@@ -14,9 +14,8 @@ namespace Symfony\Component\Form\Tests;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\Form\Extension\Csrf\CsrfExtension;
-use Symfony\Component\Form\Test\FormIntegrationTestCase;
 
-abstract class AbstractLayoutTest extends FormIntegrationTestCase
+abstract class AbstractLayoutTest extends \Symfony\Component\Form\Test\FormIntegrationTestCase
 {
     protected $csrfTokenManager;
     protected $testableFeatures = array();
@@ -24,12 +23,12 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
     protected function setUp()
     {
         if (!extension_loaded('intl')) {
-            $this->markTestSkipped('Extension intl is required.');
+            $this->markTestSkipped('The "intl" extension is not available');
         }
 
         \Locale::setDefault('en');
 
-        $this->csrfTokenManager = $this->getMockBuilder('Symfony\Component\Security\Csrf\CsrfTokenManagerInterface')->getMock();
+        $this->csrfTokenManager = $this->getMock('Symfony\Component\Security\Csrf\CsrfTokenManagerInterface');
 
         parent::setUp();
     }
@@ -48,7 +47,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
         parent::tearDown();
     }
 
-    protected function assertXpathNodeValue(\DOMElement $element, $expression, $nodeValue)
+    protected function assertXpathNodeValue(\DomElement $element, $expression, $nodeValue)
     {
         $xpath = new \DOMXPath($element->ownerDocument);
         $nodeList = $xpath->evaluate($expression);
@@ -62,7 +61,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
         try {
             // Wrap in <root> node so we can load HTML with multiple tags at
             // the top level
-            $dom->loadXML('<root>'.$html.'</root>');
+            $dom->loadXml('<root>'.$html.'</root>');
         } catch (\Exception $e) {
             $this->fail(sprintf(
                 "Failed loading HTML:\n\n%s\n\nError: %s",
@@ -83,8 +82,6 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
                 // strip away <root> and </root>
                 substr($dom->saveHTML(), 6, -8)
             ));
-        } else {
-            $this->addToAssertionCount(1);
         }
     }
 
@@ -167,20 +164,6 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
 '/label
     [@for="name"]
     [.="[trans]Name[/trans]"]
-'
-        );
-    }
-
-    public function testLabelWithoutTranslation()
-    {
-        $form = $this->factory->createNamed('name', 'text', null, array(
-            'translation_domain' => false,
-        ));
-
-        $this->assertMatchesXpath($this->renderLabel($form->createView()),
-'/label
-    [@for="name"]
-    [.="Name"]
 '
         );
     }
@@ -500,8 +483,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
     public function testSingleChoice()
     {
         $form = $this->factory->createNamed('name', 'choice', '&a', array(
-            'choices' => array('Choice&A' => '&a', 'Choice&B' => '&b'),
-            'choices_as_values' => true,
+            'choices' => array('&a' => 'Choice&A', '&b' => 'Choice&B'),
             'multiple' => false,
             'expanded' => false,
         ));
@@ -531,54 +513,10 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
         );
     }
 
-    public function testSelectWithSizeBiggerThanOneCanBeRequired()
-    {
-        $form = $this->factory->createNamed('name', 'choice', null, array(
-            'choices' => array('a', 'b'),
-            'choices_as_values' => true,
-            'multiple' => false,
-            'expanded' => false,
-            'attr' => array('size' => 2),
-        ));
-
-        $this->assertWidgetMatchesXpath($form->createView(), array(),
-'/select
-    [@name="name"]
-    [@required="required"]
-    [@size="2"]
-    [count(./option)=2]
-'
-        );
-    }
-
-    public function testSingleChoiceWithoutTranslation()
-    {
-        $form = $this->factory->createNamed('name', 'choice', '&a', array(
-            'choices' => array('Choice&A' => '&a', 'Choice&B' => '&b'),
-            'choices_as_values' => true,
-            'multiple' => false,
-            'expanded' => false,
-            'choice_translation_domain' => false,
-        ));
-
-        $this->assertWidgetMatchesXpath($form->createView(), array(),
-'/select
-    [@name="name"]
-    [not(@required)]
-    [
-        ./option[@value="&a"][@selected="selected"][.="Choice&A"]
-        /following-sibling::option[@value="&b"][not(@selected)][.="Choice&B"]
-    ]
-    [count(./option)=2]
-'
-        );
-    }
-
     public function testSingleChoiceAttributes()
     {
         $form = $this->factory->createNamed('name', 'choice', '&a', array(
-            'choices' => array('Choice&A' => '&a', 'Choice&B' => '&b'),
-            'choices_as_values' => true,
+            'choices' => array('&a' => 'Choice&A', '&b' => 'Choice&B'),
             'choice_attr' => array('Choice&B' => array('class' => 'foo&bar')),
             'multiple' => false,
             'expanded' => false,
@@ -599,60 +537,10 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
         );
     }
 
-    public function testSingleChoiceAttributesWithMainAttributes()
-    {
-        $form = $this->factory->createNamed('name', 'choice', '&a', array(
-            'choices' => array('Choice&A' => '&a', 'Choice&B' => '&b'),
-            'choices_as_values' => true,
-            'multiple' => false,
-            'expanded' => false,
-            'attr' => array('class' => 'bar&baz'),
-        ));
-
-        $this->assertWidgetMatchesXpath($form->createView(), array('attr' => array('class' => 'bar&baz')),
-'/select
-    [@name="name"]
-    [@class="bar&baz"]
-    [not(@required)]
-    [
-        ./option[@value="&a"][@selected="selected"][.="[trans]Choice&A[/trans]"][not(@id)][not(@name)]
-        /following-sibling::option[@value="&b"][not(@class)][not(@selected)][.="[trans]Choice&B[/trans]"][not(@id)][not(@name)]
-    ]
-    [count(./option)=2]
-'
-        );
-    }
-
-    public function testSingleExpandedChoiceAttributesWithMainAttributes()
-    {
-        $form = $this->factory->createNamed('name', 'choice', '&a', array(
-            'choices' => array('Choice&A' => '&a', 'Choice&B' => '&b'),
-            'choices_as_values' => true,
-            'multiple' => false,
-            'expanded' => true,
-            'attr' => array('class' => 'bar&baz'),
-        ));
-
-        $this->assertWidgetMatchesXpath($form->createView(), array('attr' => array('class' => 'bar&baz')),
-'/div
-    [@class="bar&baz"]
-    [
-        ./input[@type="radio"][@name="name"][@id="name_0"][@value="&a"][@checked]
-        /following-sibling::label[@for="name_0"][.="[trans]Choice&A[/trans]"]
-        /following-sibling::input[@type="radio"][@name="name"][@id="name_1"][@value="&b"][not(@checked)]
-        /following-sibling::label[@for="name_1"][.="[trans]Choice&B[/trans]"]
-        /following-sibling::input[@type="hidden"][@id="name__token"]
-    ]
-    [count(./input)=3]
-'
-        );
-    }
-
     public function testSingleChoiceWithPreferred()
     {
         $form = $this->factory->createNamed('name', 'choice', '&a', array(
-            'choices' => array('Choice&A' => '&a', 'Choice&B' => '&b'),
-            'choices_as_values' => true,
+            'choices' => array('&a' => 'Choice&A', '&b' => 'Choice&B'),
             'preferred_choices' => array('&b'),
             'multiple' => false,
             'expanded' => false,
@@ -675,8 +563,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
     public function testSingleChoiceWithPreferredAndNoSeparator()
     {
         $form = $this->factory->createNamed('name', 'choice', '&a', array(
-            'choices' => array('Choice&A' => '&a', 'Choice&B' => '&b'),
-            'choices_as_values' => true,
+            'choices' => array('&a' => 'Choice&A', '&b' => 'Choice&B'),
             'preferred_choices' => array('&b'),
             'multiple' => false,
             'expanded' => false,
@@ -698,8 +585,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
     public function testSingleChoiceWithPreferredAndBlankSeparator()
     {
         $form = $this->factory->createNamed('name', 'choice', '&a', array(
-            'choices' => array('Choice&A' => '&a', 'Choice&B' => '&b'),
-            'choices_as_values' => true,
+            'choices' => array('&a' => 'Choice&A', '&b' => 'Choice&B'),
             'preferred_choices' => array('&b'),
             'multiple' => false,
             'expanded' => false,
@@ -722,8 +608,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
     public function testChoiceWithOnlyPreferred()
     {
         $form = $this->factory->createNamed('name', 'choice', '&a', array(
-            'choices' => array('Choice&A' => '&a', 'Choice&B' => '&b'),
-            'choices_as_values' => true,
+            'choices' => array('&a' => 'Choice&A', '&b' => 'Choice&B'),
             'preferred_choices' => array('&a', '&b'),
             'multiple' => false,
             'expanded' => false,
@@ -739,8 +624,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
     public function testSingleChoiceNonRequired()
     {
         $form = $this->factory->createNamed('name', 'choice', '&a', array(
-            'choices' => array('Choice&A' => '&a', 'Choice&B' => '&b'),
-            'choices_as_values' => true,
+            'choices' => array('&a' => 'Choice&A', '&b' => 'Choice&B'),
             'required' => false,
             'multiple' => false,
             'expanded' => false,
@@ -751,7 +635,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
     [@name="name"]
     [not(@required)]
     [
-        ./option[@value=""][.=""]
+        ./option[@value=""][.="[trans][/trans]"]
         /following-sibling::option[@value="&a"][@selected="selected"][.="[trans]Choice&A[/trans]"]
         /following-sibling::option[@value="&b"][not(@selected)][.="[trans]Choice&B[/trans]"]
     ]
@@ -763,8 +647,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
     public function testSingleChoiceNonRequiredNoneSelected()
     {
         $form = $this->factory->createNamed('name', 'choice', null, array(
-            'choices' => array('Choice&A' => '&a', 'Choice&B' => '&b'),
-            'choices_as_values' => true,
+            'choices' => array('&a' => 'Choice&A', '&b' => 'Choice&B'),
             'required' => false,
             'multiple' => false,
             'expanded' => false,
@@ -775,7 +658,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
     [@name="name"]
     [not(@required)]
     [
-        ./option[@value=""][.=""]
+        ./option[@value=""][.="[trans][/trans]"]
         /following-sibling::option[@value="&a"][not(@selected)][.="[trans]Choice&A[/trans]"]
         /following-sibling::option[@value="&b"][not(@selected)][.="[trans]Choice&B[/trans]"]
     ]
@@ -787,8 +670,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
     public function testSingleChoiceNonRequiredWithPlaceholder()
     {
         $form = $this->factory->createNamed('name', 'choice', '&a', array(
-            'choices' => array('Choice&A' => '&a', 'Choice&B' => '&b'),
-            'choices_as_values' => true,
+            'choices' => array('&a' => 'Choice&A', '&b' => 'Choice&B'),
             'multiple' => false,
             'expanded' => false,
             'required' => false,
@@ -812,8 +694,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
     public function testSingleChoiceRequiredWithPlaceholder()
     {
         $form = $this->factory->createNamed('name', 'choice', '&a', array(
-            'choices' => array('Choice&A' => '&a', 'Choice&B' => '&b'),
-            'choices_as_values' => true,
+            'choices' => array('&a' => 'Choice&A', '&b' => 'Choice&B'),
             'required' => true,
             'multiple' => false,
             'expanded' => false,
@@ -840,8 +721,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
     public function testSingleChoiceRequiredWithPlaceholderViaView()
     {
         $form = $this->factory->createNamed('name', 'choice', '&a', array(
-            'choices' => array('Choice&A' => '&a', 'Choice&B' => '&b'),
-            'choices_as_values' => true,
+            'choices' => array('&a' => 'Choice&A', '&b' => 'Choice&B'),
             'required' => true,
             'multiple' => false,
             'expanded' => false,
@@ -855,7 +735,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
     [@name="name"]
     [@required="required"]
     [
-        ./option[@value=""][not(@selected)][not(@disabled)][.=""]
+        ./option[@value=""][not(@selected)][not(@disabled)][.="[trans][/trans]"]
         /following-sibling::option[@value="&a"][@selected="selected"][.="[trans]Choice&A[/trans]"]
         /following-sibling::option[@value="&b"][not(@selected)][.="[trans]Choice&B[/trans]"]
     ]
@@ -868,10 +748,9 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
     {
         $form = $this->factory->createNamed('name', 'choice', '&a', array(
             'choices' => array(
-                'Group&1' => array('Choice&A' => '&a', 'Choice&B' => '&b'),
-                'Group&2' => array('Choice&C' => '&c'),
+                'Group&1' => array('&a' => 'Choice&A', '&b' => 'Choice&B'),
+                'Group&2' => array('&c' => 'Choice&C'),
             ),
-            'choices_as_values' => true,
             'multiple' => false,
             'expanded' => false,
         ));
@@ -898,8 +777,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
     public function testMultipleChoice()
     {
         $form = $this->factory->createNamed('name', 'choice', array('&a'), array(
-            'choices' => array('Choice&A' => '&a', 'Choice&B' => '&b'),
-            'choices_as_values' => true,
+            'choices' => array('&a' => 'Choice&A', '&b' => 'Choice&B'),
             'required' => true,
             'multiple' => true,
             'expanded' => false,
@@ -922,8 +800,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
     public function testMultipleChoiceAttributes()
     {
         $form = $this->factory->createNamed('name', 'choice', array('&a'), array(
-            'choices' => array('Choice&A' => '&a', 'Choice&B' => '&b'),
-            'choices_as_values' => true,
+            'choices' => array('&a' => 'Choice&A', '&b' => 'Choice&B'),
             'choice_attr' => array('Choice&B' => array('class' => 'foo&bar')),
             'required' => true,
             'multiple' => true,
@@ -949,8 +826,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
     public function testMultipleChoiceSkipsPlaceholder()
     {
         $form = $this->factory->createNamed('name', 'choice', array('&a'), array(
-            'choices' => array('Choice&A' => '&a', 'Choice&B' => '&b'),
-            'choices_as_values' => true,
+            'choices' => array('&a' => 'Choice&A', '&b' => 'Choice&B'),
             'multiple' => true,
             'expanded' => false,
             'placeholder' => 'Test&Me',
@@ -972,8 +848,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
     public function testMultipleChoiceNonRequired()
     {
         $form = $this->factory->createNamed('name', 'choice', array('&a'), array(
-            'choices' => array('Choice&A' => '&a', 'Choice&B' => '&b'),
-            'choices_as_values' => true,
+            'choices' => array('&a' => 'Choice&A', '&b' => 'Choice&B'),
             'required' => false,
             'multiple' => true,
             'expanded' => false,
@@ -995,8 +870,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
     public function testSingleChoiceExpanded()
     {
         $form = $this->factory->createNamed('name', 'choice', '&a', array(
-            'choices' => array('Choice&A' => '&a', 'Choice&B' => '&b'),
-            'choices_as_values' => true,
+            'choices' => array('&a' => 'Choice&A', '&b' => 'Choice&B'),
             'multiple' => false,
             'expanded' => true,
         ));
@@ -1015,35 +889,10 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
         );
     }
 
-    public function testSingleChoiceExpandedWithoutTranslation()
-    {
-        $form = $this->factory->createNamed('name', 'choice', '&a', array(
-            'choices' => array('Choice&A' => '&a', 'Choice&B' => '&b'),
-            'choices_as_values' => true,
-            'multiple' => false,
-            'expanded' => true,
-            'choice_translation_domain' => false,
-        ));
-
-        $this->assertWidgetMatchesXpath($form->createView(), array(),
-'/div
-    [
-        ./input[@type="radio"][@name="name"][@id="name_0"][@value="&a"][@checked]
-        /following-sibling::label[@for="name_0"][.="Choice&A"]
-        /following-sibling::input[@type="radio"][@name="name"][@id="name_1"][@value="&b"][not(@checked)]
-        /following-sibling::label[@for="name_1"][.="Choice&B"]
-        /following-sibling::input[@type="hidden"][@id="name__token"]
-    ]
-    [count(./input)=3]
-'
-        );
-    }
-
     public function testSingleChoiceExpandedAttributes()
     {
         $form = $this->factory->createNamed('name', 'choice', '&a', array(
-            'choices' => array('Choice&A' => '&a', 'Choice&B' => '&b'),
-            'choices_as_values' => true,
+            'choices' => array('&a' => 'Choice&A', '&b' => 'Choice&B'),
             'choice_attr' => array('Choice&B' => array('class' => 'foo&bar')),
             'multiple' => false,
             'expanded' => true,
@@ -1068,12 +917,10 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
     public function testSingleChoiceExpandedWithPlaceholder()
     {
         $form = $this->factory->createNamed('name', 'choice', '&a', array(
-            'choices' => array('Choice&A' => '&a', 'Choice&B' => '&b'),
-            'choices_as_values' => true,
+            'choices' => array('&a' => 'Choice&A', '&b' => 'Choice&B'),
             'multiple' => false,
             'expanded' => true,
             'placeholder' => 'Test&Me',
-            'required' => false,
         ));
 
         $this->assertWidgetMatchesXpath($form->createView(), array(),
@@ -1095,8 +942,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
     public function testSingleChoiceExpandedWithBooleanValue()
     {
         $form = $this->factory->createNamed('name', 'choice', true, array(
-            'choices' => array('Choice&A' => '1', 'Choice&B' => '0'),
-            'choices_as_values' => true,
+            'choices' => array('1' => 'Choice&A', '0' => 'Choice&B'),
             'multiple' => false,
             'expanded' => true,
         ));
@@ -1118,8 +964,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
     public function testMultipleChoiceExpanded()
     {
         $form = $this->factory->createNamed('name', 'choice', array('&a', '&c'), array(
-            'choices' => array('Choice&A' => '&a', 'Choice&B' => '&b', 'Choice&C' => '&c'),
-            'choices_as_values' => true,
+            'choices' => array('&a' => 'Choice&A', '&b' => 'Choice&B', '&c' => 'Choice&C'),
             'multiple' => true,
             'expanded' => true,
             'required' => true,
@@ -1141,38 +986,10 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
         );
     }
 
-    public function testMultipleChoiceExpandedWithoutTranslation()
-    {
-        $form = $this->factory->createNamed('name', 'choice', array('&a', '&c'), array(
-            'choices' => array('Choice&A' => '&a', 'Choice&B' => '&b', 'Choice&C' => '&c'),
-            'choices_as_values' => true,
-            'multiple' => true,
-            'expanded' => true,
-            'required' => true,
-            'choice_translation_domain' => false,
-        ));
-
-        $this->assertWidgetMatchesXpath($form->createView(), array(),
-'/div
-    [
-        ./input[@type="checkbox"][@name="name[]"][@id="name_0"][@checked][not(@required)]
-        /following-sibling::label[@for="name_0"][.="Choice&A"]
-        /following-sibling::input[@type="checkbox"][@name="name[]"][@id="name_1"][not(@checked)][not(@required)]
-        /following-sibling::label[@for="name_1"][.="Choice&B"]
-        /following-sibling::input[@type="checkbox"][@name="name[]"][@id="name_2"][@checked][not(@required)]
-        /following-sibling::label[@for="name_2"][.="Choice&C"]
-        /following-sibling::input[@type="hidden"][@id="name__token"]
-    ]
-    [count(./input)=4]
-'
-        );
-    }
-
     public function testMultipleChoiceExpandedAttributes()
     {
         $form = $this->factory->createNamed('name', 'choice', array('&a', '&c'), array(
-            'choices' => array('Choice&A' => '&a', 'Choice&B' => '&b', 'Choice&C' => '&c'),
-            'choices_as_values' => true,
+            'choices' => array('&a' => 'Choice&A', '&b' => 'Choice&B', '&c' => 'Choice&C'),
             'choice_attr' => array('Choice&B' => array('class' => 'foo&bar')),
             'multiple' => true,
             'expanded' => true,
@@ -1229,7 +1046,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
 
     public function testDateTime()
     {
-        $form = $this->factory->createNamed('name', 'datetime', date('Y').'-02-03 04:05:06', array(
+        $form = $this->factory->createNamed('name', 'datetime', '2011-02-03 04:05:06', array(
             'input' => 'string',
             'with_seconds' => false,
         ));
@@ -1248,7 +1065,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
                     [./option[@value="3"][@selected="selected"]]
                 /following-sibling::select
                     [@id="name_date_year"]
-                    [./option[@value="'.date('Y').'"][@selected="selected"]]
+                    [./option[@value="2011"][@selected="selected"]]
             ]
         /following-sibling::div
             [@id="name_time"]
@@ -1308,7 +1125,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
 
     public function testDateTimeWithHourAndMinute()
     {
-        $data = array('year' => date('Y'), 'month' => '2', 'day' => '3', 'hour' => '4', 'minute' => '5');
+        $data = array('year' => '2011', 'month' => '2', 'day' => '3', 'hour' => '4', 'minute' => '5');
 
         $form = $this->factory->createNamed('name', 'datetime', $data, array(
             'input' => 'array',
@@ -1329,7 +1146,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
                     [./option[@value="3"][@selected="selected"]]
                 /following-sibling::select
                     [@id="name_date_year"]
-                    [./option[@value="'.date('Y').'"][@selected="selected"]]
+                    [./option[@value="2011"][@selected="selected"]]
             ]
         /following-sibling::div
             [@id="name_time"]
@@ -1349,7 +1166,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
 
     public function testDateTimeWithSeconds()
     {
-        $form = $this->factory->createNamed('name', 'datetime', date('Y').'-02-03 04:05:06', array(
+        $form = $this->factory->createNamed('name', 'datetime', '2011-02-03 04:05:06', array(
             'input' => 'string',
             'with_seconds' => true,
         ));
@@ -1368,7 +1185,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
                     [./option[@value="3"][@selected="selected"]]
                 /following-sibling::select
                     [@id="name_date_year"]
-                    [./option[@value="'.date('Y').'"][@selected="selected"]]
+                    [./option[@value="2011"][@selected="selected"]]
             ]
         /following-sibling::div
             [@id="name_time"]
@@ -1455,7 +1272,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
 
     public function testDateChoice()
     {
-        $form = $this->factory->createNamed('name', 'date', date('Y').'-02-03', array(
+        $form = $this->factory->createNamed('name', 'date', '2011-02-03', array(
             'input' => 'string',
             'widget' => 'choice',
         ));
@@ -1471,7 +1288,7 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
             [./option[@value="3"][@selected="selected"]]
         /following-sibling::select
             [@id="name_year"]
-            [./option[@value="'.date('Y').'"][@selected="selected"]]
+            [./option[@value="2011"][@selected="selected"]]
     ]
     [count(./select)=3]
 '
@@ -1625,15 +1442,15 @@ abstract class AbstractLayoutTest extends FormIntegrationTestCase
     [
         ./select
             [@id="name_month"]
-            [./option[@value=""][not(@selected)][not(@disabled)][.=""]]
+            [./option[@value=""][not(@selected)][not(@disabled)][.="[trans][/trans]"]]
             [./option[@value="1"][@selected="selected"]]
         /following-sibling::select
             [@id="name_day"]
-            [./option[@value=""][not(@selected)][not(@disabled)][.=""]]
+            [./option[@value=""][not(@selected)][not(@disabled)][.="[trans][/trans]"]]
             [./option[@value="1"][@selected="selected"]]
         /following-sibling::select
             [@id="name_year"]
-            [./option[@value=""][not(@selected)][not(@disabled)][.=""]]
+            [./option[@value=""][not(@selected)][not(@disabled)][.="[trans][/trans]"]]
             [./option[@value="1950"][@selected="selected"]]
     ]
     [count(./select)=3]

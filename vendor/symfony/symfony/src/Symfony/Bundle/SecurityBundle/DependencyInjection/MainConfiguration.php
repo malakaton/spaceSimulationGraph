@@ -162,7 +162,6 @@ class MainConfiguration implements ConfigurationInterface
                     ->cannotBeOverwritten()
                     ->prototype('array')
                         ->fixXmlConfig('ip')
-                        ->fixXmlConfig('method')
                         ->children()
                             ->scalarNode('requires_channel')->defaultNull()->end()
                             ->scalarNode('path')
@@ -287,7 +286,7 @@ class MainConfiguration implements ConfigurationInterface
             ->arrayNode('anonymous')
                 ->canBeUnset()
                 ->children()
-                    ->scalarNode('key')->defaultValue(uniqid('', true))->end()
+                    ->scalarNode('key')->defaultValue(uniqid())->end()
                 ->end()
             ->end()
             ->arrayNode('switch_user')
@@ -357,6 +356,7 @@ class MainConfiguration implements ConfigurationInterface
                         ),
                         'my_entity_provider' => array('entity' => array('class' => 'SecurityBundle:User', 'property' => 'username')),
                     ))
+                    ->disallowNewKeysInSubsequentConfigs()
                     ->isRequired()
                     ->requiresAtLeastOneElement()
                     ->useAttributeAsKey('name')
@@ -390,11 +390,11 @@ class MainConfiguration implements ConfigurationInterface
 
         $providerNodeBuilder
             ->validate()
-                ->ifTrue(function ($v) { return count($v) > 1; })
+                ->ifTrue(function ($v) {return count($v) > 1;})
                 ->thenInvalid('You cannot set multiple provider types for the same provider')
             ->end()
             ->validate()
-                ->ifTrue(function ($v) { return count($v) === 0; })
+                ->ifTrue(function ($v) {return count($v) === 0;})
                 ->thenInvalid('You must set a provider definition for the provider.')
             ->end()
         ;
@@ -407,10 +407,11 @@ class MainConfiguration implements ConfigurationInterface
             ->children()
                 ->arrayNode('encoders')
                     ->example(array(
-                        'AppBundle\Entity\User1' => 'bcrypt',
-                        'AppBundle\Entity\User2' => array(
-                            'algorithm' => 'bcrypt',
-                            'cost' => 13,
+                        'Acme\DemoBundle\Entity\User1' => 'sha512',
+                        'Acme\DemoBundle\Entity\User2' => array(
+                            'algorithm' => 'sha512',
+                            'encode_as_base64' => 'true',
+                            'iterations' => 5000,
                         ),
                     ))
                     ->requiresAtLeastOneElement()

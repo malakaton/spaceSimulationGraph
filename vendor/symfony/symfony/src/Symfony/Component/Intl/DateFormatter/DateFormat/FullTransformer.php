@@ -123,7 +123,7 @@ class FullTransformer
 
         // handle unimplemented characters
         if (false !== strpos($this->notImplementedChars, $dateChars[0])) {
-            throw new NotImplementedException(sprintf('Unimplemented date character "%s" in format "%s"', $dateChars[0], $this->pattern));
+            throw new NotImplementedException(sprintf("Unimplemented date character '%s' in format '%s'", $dateChars[0], $this->pattern));
         }
     }
 
@@ -133,7 +133,7 @@ class FullTransformer
      * @param \DateTime $dateTime A configured DateTime object to use to perform the date calculation
      * @param string    $value    String to convert to a time value
      *
-     * @return int|false The corresponding Unix timestamp
+     * @return int The corresponding Unix timestamp
      *
      * @throws \InvalidArgumentException When the value can not be matched with pattern
      */
@@ -214,7 +214,7 @@ class FullTransformer
      */
     public function isQuoteMatch($quoteMatch)
     {
-        return "'" === $quoteMatch[0];
+        return ("'" === $quoteMatch[0]);
     }
 
     /**

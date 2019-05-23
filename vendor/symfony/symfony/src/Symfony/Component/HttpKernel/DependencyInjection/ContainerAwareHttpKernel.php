@@ -46,7 +46,7 @@ class ContainerAwareHttpKernel extends HttpKernel
         parent::__construct($dispatcher, $controllerResolver, $requestStack);
 
         if ($triggerDeprecation) {
-            @trigger_error('The '.__CLASS__.' class is deprecated since version 2.7 and will be removed in 3.0. Use the Symfony\Component\HttpKernel\HttpKernel class instead.', E_USER_DEPRECATED);
+            trigger_error('The '.__CLASS__.' class is deprecated since version 2.7 and will be removed in 3.0. Use the Symfony\Component\HttpKernel\HttpKernel class instead.', E_USER_DEPRECATED);
         }
 
         $this->container = $container;
@@ -68,11 +68,6 @@ class ContainerAwareHttpKernel extends HttpKernel
         try {
             $response = parent::handle($request, $type, $catch);
         } catch (\Exception $e) {
-            $this->container->set('request', null, 'request');
-            $this->container->leaveScope('request');
-
-            throw $e;
-        } catch (\Throwable $e) {
             $this->container->set('request', null, 'request');
             $this->container->leaveScope('request');
 

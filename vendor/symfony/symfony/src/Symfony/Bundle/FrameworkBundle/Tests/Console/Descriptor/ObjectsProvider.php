@@ -72,16 +72,9 @@ class ObjectsProvider
     {
         $builder = new ContainerBuilder();
         $builder->setParameter('database_name', 'symfony');
-        $builder->setParameter('twig.form.resources', array(
-            'bootstrap_3_horizontal_layout.html.twig',
-            'bootstrap_3_layout.html.twig',
-            'form_div_layout.html.twig',
-            'form_table_layout.html.twig',
-        ));
 
         return array(
-            'parameter' => $builder,
-            'array_parameter' => $builder,
+            'parameter' =>  $builder,
         );
     }
 
@@ -121,7 +114,6 @@ class ObjectsProvider
 
     /**
      * @deprecated since version 2.7, to be removed in 3.0
-     *
      * @internal
      */
     public static function getLegacyContainerDefinitions()
@@ -191,11 +183,9 @@ class CallableClass
     public function __invoke()
     {
     }
-
     public static function staticMethod()
     {
     }
-
     public function method()
     {
     }

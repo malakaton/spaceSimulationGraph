@@ -110,7 +110,7 @@ class ClassMetadata implements ClassMetadataInterface
     {
         return array(
             'name',
-            'attributesMetadata',
+            'attributes',
         );
     }
 }

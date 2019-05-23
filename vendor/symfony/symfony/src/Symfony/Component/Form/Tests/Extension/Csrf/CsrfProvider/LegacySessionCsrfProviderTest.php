@@ -11,20 +11,27 @@
 
 namespace Symfony\Component\Form\Tests\Extension\Csrf\CsrfProvider;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Form\Extension\Csrf\CsrfProvider\SessionCsrfProvider;
 
 /**
  * @group legacy
  */
-class LegacySessionCsrfProviderTest extends TestCase
+class LegacySessionCsrfProviderTest extends \PHPUnit_Framework_TestCase
 {
     protected $provider;
     protected $session;
 
     protected function setUp()
     {
-        $this->session = $this->getMockBuilder('Symfony\Component\HttpFoundation\Session\Session')->disableOriginalConstructor()->getMock();
+        $this->iniSet('error_reporting', -1 & ~E_USER_DEPRECATED);
+
+        $this->session = $this->getMock(
+            'Symfony\Component\HttpFoundation\Session\Session',
+            array(),
+            array(),
+            '',
+            false // don't call constructor
+        );
         $this->provider = new SessionCsrfProvider($this->session, 'SECRET');
     }
 
@@ -37,8 +44,8 @@ class LegacySessionCsrfProviderTest extends TestCase
     public function testGenerateCsrfToken()
     {
         $this->session->expects($this->once())
-            ->method('getId')
-            ->will($this->returnValue('ABCDEF'));
+                ->method('getId')
+                ->will($this->returnValue('ABCDEF'));
 
         $token = $this->provider->generateCsrfToken('foo');
 
@@ -48,8 +55,8 @@ class LegacySessionCsrfProviderTest extends TestCase
     public function testIsCsrfTokenValidSucceeds()
     {
         $this->session->expects($this->once())
-            ->method('getId')
-            ->will($this->returnValue('ABCDEF'));
+                ->method('getId')
+                ->will($this->returnValue('ABCDEF'));
 
         $token = sha1('SECRET'.'foo'.'ABCDEF');
 
@@ -59,8 +66,8 @@ class LegacySessionCsrfProviderTest extends TestCase
     public function testIsCsrfTokenValidFails()
     {
         $this->session->expects($this->once())
-            ->method('getId')
-            ->will($this->returnValue('ABCDEF'));
+                ->method('getId')
+                ->will($this->returnValue('ABCDEF'));
 
         $token = sha1('SECRET'.'bar'.'ABCDEF');
 

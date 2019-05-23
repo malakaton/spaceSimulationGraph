@@ -120,12 +120,7 @@ class ConsoleHandler extends AbstractProcessingHandler implements EventSubscribe
      */
     public function onCommand(ConsoleCommandEvent $event)
     {
-        $output = $event->getOutput();
-        if ($output instanceof ConsoleOutputInterface) {
-            $output = $output->getErrorOutput();
-        }
-
-        $this->setOutput($output);
+        $this->setOutput($event->getOutput());
     }
 
     /**
@@ -154,7 +149,11 @@ class ConsoleHandler extends AbstractProcessingHandler implements EventSubscribe
      */
     protected function write(array $record)
     {
-        $this->output->write((string) $record['formatted']);
+        if ($record['level'] >= Logger::ERROR && $this->output instanceof ConsoleOutputInterface) {
+            $this->output->getErrorOutput()->write((string) $record['formatted']);
+        } else {
+            $this->output->write((string) $record['formatted']);
+        }
     }
 
     /**
@@ -168,7 +167,7 @@ class ConsoleHandler extends AbstractProcessingHandler implements EventSubscribe
     /**
      * Updates the logging level based on the verbosity setting of the console output.
      *
-     * @return bool Whether the handler is enabled and verbosity is not set to quiet
+     * @return bool Whether the handler is enabled and verbosity is not set to quiet.
      */
     private function updateLevel()
     {

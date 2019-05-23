@@ -20,8 +20,6 @@ use Symfony\Component\Security\Http\RememberMe\RememberMeServicesInterface;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
 use Symfony\Component\Security\Http\SecurityEvents;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\Security\Http\Session\SessionAuthenticationStrategyInterface;
-use Symfony\Component\Security\Http\Session\SessionAuthenticationStrategy;
 
 /**
  * RememberMeListener implements authentication capabilities via a cookie.
@@ -36,20 +34,18 @@ class RememberMeListener implements ListenerInterface
     private $logger;
     private $dispatcher;
     private $catchExceptions = true;
-    private $sessionStrategy;
 
     /**
      * Constructor.
      *
-     * @param TokenStorageInterface                       $tokenStorage
-     * @param RememberMeServicesInterface                 $rememberMeServices
-     * @param AuthenticationManagerInterface              $authenticationManager
-     * @param LoggerInterface|null                        $logger
-     * @param EventDispatcherInterface|null               $dispatcher
-     * @param bool                                        $catchExceptions
-     * @param SessionAuthenticationStrategyInterface|null $sessionStrategy
+     * @param TokenStorageInterface          $tokenStorage
+     * @param RememberMeServicesInterface    $rememberMeServices
+     * @param AuthenticationManagerInterface $authenticationManager
+     * @param LoggerInterface                $logger
+     * @param EventDispatcherInterface       $dispatcher
+     * @param bool                           $catchExceptions
      */
-    public function __construct(TokenStorageInterface $tokenStorage, RememberMeServicesInterface $rememberMeServices, AuthenticationManagerInterface $authenticationManager, LoggerInterface $logger = null, EventDispatcherInterface $dispatcher = null, $catchExceptions = true, SessionAuthenticationStrategyInterface $sessionStrategy = null)
+    public function __construct(TokenStorageInterface $tokenStorage, RememberMeServicesInterface $rememberMeServices, AuthenticationManagerInterface $authenticationManager, LoggerInterface $logger = null, EventDispatcherInterface $dispatcher = null, $catchExceptions = true)
     {
         $this->tokenStorage = $tokenStorage;
         $this->rememberMeServices = $rememberMeServices;
@@ -57,7 +53,6 @@ class RememberMeListener implements ListenerInterface
         $this->logger = $logger;
         $this->dispatcher = $dispatcher;
         $this->catchExceptions = $catchExceptions;
-        $this->sessionStrategy = null === $sessionStrategy ? new SessionAuthenticationStrategy(SessionAuthenticationStrategy::MIGRATE) : $sessionStrategy;
     }
 
     /**
@@ -78,9 +73,6 @@ class RememberMeListener implements ListenerInterface
 
         try {
             $token = $this->authenticationManager->authenticate($token);
-            if ($request->hasSession() && $request->getSession()->isStarted()) {
-                $this->sessionStrategy->onAuthentication($request, $token);
-            }
             $this->tokenStorage->setToken($token);
 
             if (null !== $this->dispatcher) {
@@ -91,19 +83,19 @@ class RememberMeListener implements ListenerInterface
             if (null !== $this->logger) {
                 $this->logger->debug('Populated the token storage with a remember-me token.');
             }
-        } catch (AuthenticationException $e) {
+        } catch (AuthenticationException $failed) {
             if (null !== $this->logger) {
                 $this->logger->warning(
                     'The token storage was not populated with remember-me token as the'
                    .' AuthenticationManager rejected the AuthenticationToken returned'
-                   .' by the RememberMeServices.', array('exception' => $e)
+                   .' by the RememberMeServices.', array('exception' => $failed)
                 );
             }
 
             $this->rememberMeServices->loginFail($request);
 
             if (!$this->catchExceptions) {
-                throw $e;
+                throw $failed;
             }
         }
     }

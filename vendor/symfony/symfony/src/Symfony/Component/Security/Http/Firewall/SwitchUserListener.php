@@ -12,7 +12,6 @@
 namespace Symfony\Component\Security\Http\Firewall;
 
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
-use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Core\User\UserCheckerInterface;
 use Symfony\Component\Security\Core\Authorization\AccessDecisionManagerInterface;
@@ -116,9 +115,9 @@ class SwitchUserListener implements ListenerInterface
         if (false !== $originalToken) {
             if ($token->getUsername() === $request->get($this->usernameParameter)) {
                 return $token;
+            } else {
+                throw new \LogicException(sprintf('You are already switched to "%s" user.', $token->getUsername()));
             }
-
-            throw new \LogicException(sprintf('You are already switched to "%s" user.', $token->getUsername()));
         }
 
         if (false === $this->accessDecisionManager->decide($token, array($this->role))) {
@@ -158,13 +157,12 @@ class SwitchUserListener implements ListenerInterface
      */
     private function attemptExitUser(Request $request)
     {
-        if (null === ($currentToken = $this->tokenStorage->getToken()) || false === $original = $this->getOriginalToken($currentToken)) {
+        if (false === $original = $this->getOriginalToken($this->tokenStorage->getToken())) {
             throw new AuthenticationCredentialsNotFoundException('Could not find original Token object.');
         }
 
-        if (null !== $this->dispatcher && $original->getUser() instanceof UserInterface) {
-            $user = $this->provider->refreshUser($original->getUser());
-            $switchEvent = new SwitchUserEvent($request, $user);
+        if (null !== $this->dispatcher) {
+            $switchEvent = new SwitchUserEvent($request, $original->getUser());
             $this->dispatcher->dispatch(SecurityEvents::SWITCH_USER, $switchEvent);
         }
 

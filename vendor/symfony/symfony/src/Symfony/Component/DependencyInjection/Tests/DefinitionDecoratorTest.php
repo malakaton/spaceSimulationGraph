@@ -11,10 +11,9 @@
 
 namespace Symfony\Component\DependencyInjection\Tests;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\DefinitionDecorator;
 
-class DefinitionDecoratorTest extends TestCase
+class DefinitionDecoratorTest extends \PHPUnit_Framework_TestCase
 {
     public function testConstructor()
     {
@@ -56,6 +55,8 @@ class DefinitionDecoratorTest extends TestCase
      */
     public function testLegacySetProperty($property, $changeKey)
     {
+        $this->iniSet('error_reporting', -1 & ~E_USER_DEPRECATED);
+
         $def = new DefinitionDecorator('foo');
 
         $getter = 'get'.ucfirst($property);

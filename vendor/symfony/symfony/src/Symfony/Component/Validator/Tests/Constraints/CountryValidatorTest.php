@@ -18,6 +18,13 @@ use Symfony\Component\Validator\Validation;
 
 class CountryValidatorTest extends AbstractConstraintValidatorTest
 {
+    protected function setUp()
+    {
+        IntlTestHelper::requireFullIntl($this);
+
+        parent::setUp();
+    }
+
     protected function getApiVersion()
     {
         return Validation::API_VERSION_2_5;
@@ -96,7 +103,7 @@ class CountryValidatorTest extends AbstractConstraintValidatorTest
     public function testValidateUsingCountrySpecificLocale()
     {
         // in order to test with "en_GB"
-        IntlTestHelper::requireFullIntl($this, false);
+        IntlTestHelper::requireFullIntl($this);
 
         \Locale::setDefault('en_GB');
 

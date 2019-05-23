@@ -26,8 +26,7 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * @author Fabien Potencier <fabien@symfony.com>
  *
- * @method Request|null getRequest() A Request instance
- * @method Response|null getResponse() A Response instance
+ * @api
  */
 class Client extends BaseClient
 {
@@ -48,6 +47,26 @@ class Client extends BaseClient
         $this->followRedirects = false;
 
         parent::__construct($server, $history, $cookieJar);
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @return Request|null A Request instance
+     */
+    public function getRequest()
+    {
+        return parent::getRequest();
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @return Response|null A Response instance
+     */
+    public function getResponse()
+    {
+        return parent::getResponse();
     }
 
     /**
@@ -82,13 +101,13 @@ class Client extends BaseClient
 
         $r = new \ReflectionClass('\\Symfony\\Component\\ClassLoader\\ClassLoader');
         $requirePath = str_replace("'", "\\'", $r->getFileName());
-        $symfonyPath = str_replace("'", "\\'", dirname(dirname(dirname(__DIR__))));
+        $symfonyPath = str_replace("'", "\\'", realpath(__DIR__.'/../../..'));
         $errorReporting = error_reporting();
 
         $code = <<<EOF
 <?php
 
-error_reporting($errorReporting);
+error_reporting($errorReporting & ~E_USER_DEPRECATED);
 
 require_once '$requirePath';
 

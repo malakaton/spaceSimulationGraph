@@ -19,7 +19,6 @@ use Symfony\Component\HttpFoundation\Session\Flash\AutoExpireFlashBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\WebProfilerBundle\Profiler\TemplateManager;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Twig\Environment;
 
 /**
  * ProfilerController.
@@ -40,11 +39,11 @@ class ProfilerController
      *
      * @param UrlGeneratorInterface $generator       The URL Generator
      * @param Profiler              $profiler        The profiler
-     * @param Environment           $twig            The twig environment
+     * @param \Twig_Environment     $twig            The twig environment
      * @param array                 $templates       The templates
      * @param string                $toolbarPosition The toolbar position (top, bottom, normal, or null -- use the configuration)
      */
-    public function __construct(UrlGeneratorInterface $generator, Profiler $profiler = null, Environment $twig, array $templates, $toolbarPosition = 'normal')
+    public function __construct(UrlGeneratorInterface $generator, Profiler $profiler = null, \Twig_Environment $twig, array $templates, $toolbarPosition = 'normal')
     {
         $this->generator = $generator;
         $this->profiler = $profiler;
@@ -107,7 +106,7 @@ class ProfilerController
             'panel' => $panel,
             'page' => $page,
             'request' => $request,
-            'templates' => $this->getTemplateManager()->getNames($profile),
+            'templates' => $this->getTemplateManager()->getTemplates($profile),
             'is_ajax' => $request->isXmlHttpRequest(),
         )), 200, array('Content-Type' => 'text/html'));
     }
@@ -201,7 +200,7 @@ class ProfilerController
         return new Response($this->twig->render('@WebProfiler/Profiler/toolbar.html.twig', array(
             'position' => $position,
             'profile' => $profile,
-            'templates' => $this->getTemplateManager()->getNames($profile),
+            'templates' => $this->getTemplateManager()->getTemplates($profile),
             'profiler_url' => $url,
             'token' => $token,
         )), 200, array('Content-Type' => 'text/html'));

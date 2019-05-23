@@ -32,10 +32,6 @@ class ChoiceQuestion extends Question
      */
     public function __construct($question, array $choices, $default = null)
     {
-        if (!$choices) {
-            throw new \LogicException('Choice question must have at least 1 choice available.');
-        }
-
         parent::__construct($question, $default);
 
         $this->choices = $choices;
@@ -60,7 +56,7 @@ class ChoiceQuestion extends Question
      *
      * @param bool $multiselect
      *
-     * @return $this
+     * @return ChoiceQuestion The current instance
      */
     public function setMultiselect($multiselect)
     {
@@ -68,16 +64,6 @@ class ChoiceQuestion extends Question
         $this->setValidator($this->getDefaultValidator());
 
         return $this;
-    }
-
-    /**
-     * Returns whether the choices are multiselect.
-     *
-     * @return bool
-     */
-    public function isMultiselect()
-    {
-        return $this->multiselect;
     }
 
     /**
@@ -95,7 +81,7 @@ class ChoiceQuestion extends Question
      *
      * @param string $prompt
      *
-     * @return $this
+     * @return ChoiceQuestion The current instance
      */
     public function setPrompt($prompt)
     {
@@ -111,7 +97,7 @@ class ChoiceQuestion extends Question
      *
      * @param string $errorMessage
      *
-     * @return $this
+     * @return ChoiceQuestion The current instance
      */
     public function setErrorMessage($errorMessage)
     {
@@ -139,7 +125,7 @@ class ChoiceQuestion extends Question
 
             if ($multiselect) {
                 // Check for a separated comma values
-                if (!preg_match('/^[^,]+(?:,[^,]+)*$/', $selectedChoices, $matches)) {
+                if (!preg_match('/^[a-zA-Z0-9_-]+(?:,[a-zA-Z0-9_-]+)*$/', $selectedChoices, $matches)) {
                     throw new \InvalidArgumentException(sprintf($errorMessage, $selected));
                 }
                 $selectedChoices = explode(',', $selectedChoices);
@@ -175,8 +161,7 @@ class ChoiceQuestion extends Question
                 if (false === $result) {
                     throw new \InvalidArgumentException(sprintf($errorMessage, $value));
                 }
-
-                $multiselectChoices[] = (string) $result;
+                array_push($multiselectChoices, (string) $result);
             }
 
             if ($multiselect) {

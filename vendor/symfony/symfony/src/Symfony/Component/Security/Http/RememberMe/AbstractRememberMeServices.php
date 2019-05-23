@@ -34,10 +34,7 @@ abstract class AbstractRememberMeServices implements RememberMeServicesInterface
     const COOKIE_DELIMITER = ':';
 
     protected $logger;
-    protected $options = array(
-        'secure' => false,
-        'httponly' => true,
-    );
+    protected $options;
     private $providerKey;
     private $key;
     private $userProviders;
@@ -68,7 +65,7 @@ abstract class AbstractRememberMeServices implements RememberMeServicesInterface
         $this->userProviders = $userProviders;
         $this->key = $key;
         $this->providerKey = $providerKey;
-        $this->options = array_merge($this->options, $options);
+        $this->options = $options;
         $this->logger = $logger;
     }
 
@@ -126,21 +123,21 @@ abstract class AbstractRememberMeServices implements RememberMeServicesInterface
             }
 
             return new RememberMeToken($user, $this->providerKey, $this->key);
-        } catch (CookieTheftException $e) {
+        } catch (CookieTheftException $theft) {
             $this->cancelCookie($request);
 
-            throw $e;
-        } catch (UsernameNotFoundException $e) {
+            throw $theft;
+        } catch (UsernameNotFoundException $notFound) {
             if (null !== $this->logger) {
                 $this->logger->info('User for remember-me cookie not found.');
             }
-        } catch (UnsupportedUserException $e) {
+        } catch (UnsupportedUserException $unSupported) {
             if (null !== $this->logger) {
                 $this->logger->warning('User class for remember-me cookie not supported.');
             }
-        } catch (AuthenticationException $e) {
+        } catch (AuthenticationException $invalid) {
             if (null !== $this->logger) {
-                $this->logger->debug('Remember-Me authentication failed.', array('exception' => $e));
+                $this->logger->debug('Remember-Me authentication failed.', array('exception' => $invalid));
             }
         }
 
@@ -296,7 +293,7 @@ abstract class AbstractRememberMeServices implements RememberMeServicesInterface
             $this->logger->debug('Clearing remember-me cookie.', array('name' => $this->options['name']));
         }
 
-        $request->attributes->set(self::COOKIE_ATTR_NAME, new Cookie($this->options['name'], null, 1, $this->options['path'], $this->options['domain'], $this->options['secure'], $this->options['httponly']));
+        $request->attributes->set(self::COOKIE_ATTR_NAME, new Cookie($this->options['name'], null, 1, $this->options['path'], $this->options['domain']));
     }
 
     /**
@@ -318,6 +315,6 @@ abstract class AbstractRememberMeServices implements RememberMeServicesInterface
             $this->logger->debug('Did not send remember-me cookie.', array('parameter' => $this->options['remember_me_parameter']));
         }
 
-        return $parameter === 'true' || $parameter === 'on' || $parameter === '1' || $parameter === 'yes' || $parameter === true;
+        return $parameter === 'true' || $parameter === 'on' || $parameter === '1' || $parameter === 'yes';
     }
 }

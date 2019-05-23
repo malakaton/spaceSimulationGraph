@@ -11,8 +11,6 @@
 
 namespace Symfony\Component\Console\Tests\Helper;
 
-use PHPUnit\Framework\TestCase;
-use Symfony\Component\Console\Formatter\OutputFormatter;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Helper\HelperSet;
 use Symfony\Component\Console\Helper\FormatterHelper;
@@ -24,7 +22,7 @@ use Symfony\Component\Console\Question\Question;
 /**
  * @group tty
  */
-class QuestionHelperTest extends TestCase
+class QuestionHelperTest extends \PHPUnit_Framework_TestCase
 {
     public function testAskChoice()
     {
@@ -38,18 +36,15 @@ class QuestionHelperTest extends TestCase
         $questionHelper->setInputStream($this->getInputStream("\n1\n  1  \nFabien\n1\nFabien\n1\n0,2\n 0 , 2  \n\n\n"));
 
         $question = new ChoiceQuestion('What is your favorite superhero?', $heroes, '2');
-        $question->setMaxAttempts(1);
         // first answer is an empty answer, we're supposed to receive the default value
         $this->assertEquals('Spiderman', $questionHelper->ask($this->createInputInterfaceMock(), $this->createOutputInterface(), $question));
 
         $question = new ChoiceQuestion('What is your favorite superhero?', $heroes);
-        $question->setMaxAttempts(1);
         $this->assertEquals('Batman', $questionHelper->ask($this->createInputInterfaceMock(), $this->createOutputInterface(), $question));
         $this->assertEquals('Batman', $questionHelper->ask($this->createInputInterfaceMock(), $this->createOutputInterface(), $question));
 
         $question = new ChoiceQuestion('What is your favorite superhero?', $heroes);
         $question->setErrorMessage('Input "%s" is not a superhero!');
-        $question->setMaxAttempts(2);
         $this->assertEquals('Batman', $questionHelper->ask($this->createInputInterfaceMock(), $output = $this->createOutputInterface(), $question));
 
         rewind($output->getStream());
@@ -66,7 +61,6 @@ class QuestionHelperTest extends TestCase
         }
 
         $question = new ChoiceQuestion('What is your favorite superhero?', $heroes, null);
-        $question->setMaxAttempts(1);
         $question->setMultiselect(true);
 
         $this->assertEquals(array('Batman'), $questionHelper->ask($this->createInputInterfaceMock(), $this->createOutputInterface(), $question));
@@ -74,13 +68,11 @@ class QuestionHelperTest extends TestCase
         $this->assertEquals(array('Superman', 'Spiderman'), $questionHelper->ask($this->createInputInterfaceMock(), $this->createOutputInterface(), $question));
 
         $question = new ChoiceQuestion('What is your favorite superhero?', $heroes, '0,1');
-        $question->setMaxAttempts(1);
         $question->setMultiselect(true);
 
         $this->assertEquals(array('Superman', 'Batman'), $questionHelper->ask($this->createInputInterfaceMock(), $this->createOutputInterface(), $question));
 
         $question = new ChoiceQuestion('What is your favorite superhero?', $heroes, ' 0 , 1 ');
-        $question->setMaxAttempts(1);
         $question->setMultiselect(true);
 
         $this->assertEquals(array('Superman', 'Batman'), $questionHelper->ask($this->createInputInterfaceMock(), $this->createOutputInterface(), $question));
@@ -134,26 +126,6 @@ class QuestionHelperTest extends TestCase
         $this->assertEquals('AcmeDemoBundle', $dialog->ask($this->createInputInterfaceMock(), $this->createOutputInterface(), $question));
         $this->assertEquals('AsseticBundle', $dialog->ask($this->createInputInterfaceMock(), $this->createOutputInterface(), $question));
         $this->assertEquals('FooBundle', $dialog->ask($this->createInputInterfaceMock(), $this->createOutputInterface(), $question));
-    }
-
-    public function testAskWithAutocompleteWithNonSequentialKeys()
-    {
-        if (!$this->hasSttyAvailable()) {
-            $this->markTestSkipped('`stty` is required to test autocomplete functionality');
-        }
-
-        // <UP ARROW><UP ARROW><NEWLINE><DOWN ARROW><DOWN ARROW><NEWLINE>
-        $inputStream = $this->getInputStream("\033[A\033[A\n\033[B\033[B\n");
-
-        $dialog = new QuestionHelper();
-        $dialog->setInputStream($inputStream);
-        $dialog->setHelperSet(new HelperSet(array(new FormatterHelper())));
-
-        $question = new ChoiceQuestion('Please select a bundle', array(1 => 'AcmeDemoBundle', 4 => 'AsseticBundle'));
-        $question->setMaxAttempts(1);
-
-        $this->assertEquals('AcmeDemoBundle', $dialog->ask($this->createInputInterfaceMock(), $this->createOutputInterface(), $question));
-        $this->assertEquals('AsseticBundle', $dialog->ask($this->createInputInterfaceMock(), $this->createOutputInterface(), $question));
     }
 
     public function testAskHiddenResponse()
@@ -255,7 +227,6 @@ class QuestionHelperTest extends TestCase
         $dialog->setHelperSet($helperSet);
 
         $question = new ChoiceQuestion('Please select the environment to load', $possibleChoices);
-        $question->setMaxAttempts(1);
         $answer = $dialog->ask($this->createInputInterfaceMock(), $this->createOutputInterface(), $question);
 
         $this->assertSame($expectedValue, $answer);
@@ -270,37 +241,6 @@ class QuestionHelperTest extends TestCase
             array('My environment 1', 'My environment 1'),
             array('My environment 2', 'My environment 2'),
             array('My environment 3', 'My environment 3'),
-        );
-    }
-
-    /**
-     * @dataProvider specialCharacterInMultipleChoice
-     */
-    public function testSpecialCharacterChoiceFromMultipleChoiceList($providedAnswer, $expectedValue)
-    {
-        $possibleChoices = array(
-            '.',
-            'src',
-        );
-
-        $dialog = new QuestionHelper();
-        $dialog->setInputStream($this->getInputStream($providedAnswer."\n"));
-        $helperSet = new HelperSet(array(new FormatterHelper()));
-        $dialog->setHelperSet($helperSet);
-
-        $question = new ChoiceQuestion('Please select the directory', $possibleChoices);
-        $question->setMaxAttempts(1);
-        $question->setMultiselect(true);
-        $answer = $dialog->ask($this->createInputInterfaceMock(), $this->createOutputInterface(), $question);
-
-        $this->assertSame($expectedValue, $answer);
-    }
-
-    public function specialCharacterInMultipleChoice()
-    {
-        return array(
-            array('.', array('.')),
-            array('., src', array('.', 'src')),
         );
     }
 
@@ -403,77 +343,6 @@ class QuestionHelperTest extends TestCase
         $this->assertEquals('not yet', $dialog->ask($this->createInputInterfaceMock(false), $this->createOutputInterface(), $question));
     }
 
-    /**
-     * @requires function mb_strwidth
-     */
-    public function testChoiceOutputFormattingQuestionForUtf8Keys()
-    {
-        $question = 'Lorem ipsum?';
-        $possibleChoices = array(
-            'foo' => 'foo',
-            'żółw' => 'bar',
-            'łabądź' => 'baz',
-        );
-        $outputShown = array(
-            $question,
-            '  [<info>foo   </info>] foo',
-            '  [<info>żółw  </info>] bar',
-            '  [<info>łabądź</info>] baz',
-        );
-        $output = $this->getMockBuilder('\Symfony\Component\Console\Output\OutputInterface')->getMock();
-        $output->method('getFormatter')->willReturn(new OutputFormatter());
-
-        $dialog = new QuestionHelper();
-        $dialog->setInputStream($this->getInputStream("\n"));
-        $helperSet = new HelperSet(array(new FormatterHelper()));
-        $dialog->setHelperSet($helperSet);
-
-        $output->expects($this->once())->method('writeln')->with($this->equalTo($outputShown));
-
-        $question = new ChoiceQuestion($question, $possibleChoices, 'foo');
-        $dialog->ask($this->createInputInterfaceMock(), $output, $question);
-    }
-
-    /**
-     * @expectedException        \Symfony\Component\Console\Exception\RuntimeException
-     * @expectedExceptionMessage Aborted
-     */
-    public function testAskThrowsExceptionOnMissingInput()
-    {
-        $dialog = new QuestionHelper();
-        $dialog->setInputStream($this->getInputStream(''));
-
-        $dialog->ask($this->createInputInterfaceMock(), $this->createOutputInterface(), new Question('What\'s your name?'));
-    }
-
-    /**
-     * @expectedException        \Symfony\Component\Console\Exception\RuntimeException
-     * @expectedExceptionMessage Aborted
-     */
-    public function testAskThrowsExceptionOnMissingInputWithValidator()
-    {
-        $dialog = new QuestionHelper();
-        $dialog->setInputStream($this->getInputStream(''));
-
-        $question = new Question('What\'s your name?');
-        $question->setValidator(function () {
-            if (!$value) {
-                throw new \Exception('A value is required.');
-            }
-        });
-
-        $dialog->ask($this->createInputInterfaceMock(), $this->createOutputInterface(), $question);
-    }
-
-    /**
-     * @expectedException \LogicException
-     * @expectedExceptionMessage Choice question must have at least 1 choice available.
-     */
-    public function testEmptyChoices()
-    {
-        new ChoiceQuestion('Question', array(), 'irrelevant');
-    }
-
     protected function getInputStream($input)
     {
         $stream = fopen('php://memory', 'r+', false);
@@ -490,7 +359,7 @@ class QuestionHelperTest extends TestCase
 
     protected function createInputInterfaceMock($interactive = true)
     {
-        $mock = $this->getMockBuilder('Symfony\Component\Console\Input\InputInterface')->getMock();
+        $mock = $this->getMock('Symfony\Component\Console\Input\InputInterface');
         $mock->expects($this->any())
             ->method('isInteractive')
             ->will($this->returnValue($interactive));

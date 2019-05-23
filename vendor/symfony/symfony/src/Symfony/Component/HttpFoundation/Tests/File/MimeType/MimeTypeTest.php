@@ -11,25 +11,25 @@
 
 namespace Symfony\Component\HttpFoundation\Tests\File\MimeType;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesser;
 use Symfony\Component\HttpFoundation\File\MimeType\FileBinaryMimeTypeGuesser;
 
-/**
- * @requires extension fileinfo
- */
-class MimeTypeTest extends TestCase
+class MimeTypeTest extends \PHPUnit_Framework_TestCase
 {
     protected $path;
 
     public function testGuessImageWithoutExtension()
     {
-        $this->assertEquals('image/gif', MimeTypeGuesser::getInstance()->guess(__DIR__.'/../Fixtures/test'));
+        if (extension_loaded('fileinfo')) {
+            $this->assertEquals('image/gif', MimeTypeGuesser::getInstance()->guess(__DIR__.'/../Fixtures/test'));
+        } else {
+            $this->assertNull(MimeTypeGuesser::getInstance()->guess(__DIR__.'/../Fixtures/test'));
+        }
     }
 
     public function testGuessImageWithDirectory()
     {
-        $this->{method_exists($this, $_ = 'expectException') ? $_ : 'setExpectedException'}('Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException');
+        $this->setExpectedException('Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException');
 
         MimeTypeGuesser::getInstance()->guess(__DIR__.'/../Fixtures/directory');
     }
@@ -38,22 +38,34 @@ class MimeTypeTest extends TestCase
     {
         $guesser = MimeTypeGuesser::getInstance();
         $guesser->register(new FileBinaryMimeTypeGuesser());
-        $this->assertEquals('image/gif', MimeTypeGuesser::getInstance()->guess(__DIR__.'/../Fixtures/test'));
+        if (extension_loaded('fileinfo')) {
+            $this->assertEquals('image/gif', MimeTypeGuesser::getInstance()->guess(__DIR__.'/../Fixtures/test'));
+        } else {
+            $this->assertNull(MimeTypeGuesser::getInstance()->guess(__DIR__.'/../Fixtures/test'));
+        }
     }
 
     public function testGuessImageWithKnownExtension()
     {
-        $this->assertEquals('image/gif', MimeTypeGuesser::getInstance()->guess(__DIR__.'/../Fixtures/test.gif'));
+        if (extension_loaded('fileinfo')) {
+            $this->assertEquals('image/gif', MimeTypeGuesser::getInstance()->guess(__DIR__.'/../Fixtures/test.gif'));
+        } else {
+            $this->assertNull(MimeTypeGuesser::getInstance()->guess(__DIR__.'/../Fixtures/test.gif'));
+        }
     }
 
     public function testGuessFileWithUnknownExtension()
     {
-        $this->assertEquals('application/octet-stream', MimeTypeGuesser::getInstance()->guess(__DIR__.'/../Fixtures/.unknownextension'));
+        if (extension_loaded('fileinfo')) {
+            $this->assertEquals('application/octet-stream', MimeTypeGuesser::getInstance()->guess(__DIR__.'/../Fixtures/.unknownextension'));
+        } else {
+            $this->assertNull(MimeTypeGuesser::getInstance()->guess(__DIR__.'/../Fixtures/.unknownextension'));
+        }
     }
 
     public function testGuessWithIncorrectPath()
     {
-        $this->{method_exists($this, $_ = 'expectException') ? $_ : 'setExpectedException'}('Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException');
+        $this->setExpectedException('Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException');
         MimeTypeGuesser::getInstance()->guess(__DIR__.'/../Fixtures/not_here');
     }
 
@@ -63,7 +75,7 @@ class MimeTypeTest extends TestCase
             $this->markTestSkipped('Can not verify chmod operations on Windows');
         }
 
-        if (!getenv('USER') || 'root' === getenv('USER')) {
+        if ('root' === get_current_user()) {
             $this->markTestSkipped('This test will fail if run under superuser');
         }
 
@@ -71,8 +83,8 @@ class MimeTypeTest extends TestCase
         touch($path);
         @chmod($path, 0333);
 
-        if (substr(sprintf('%o', fileperms($path)), -4) == '0333') {
-            $this->{method_exists($this, $_ = 'expectException') ? $_ : 'setExpectedException'}('Symfony\Component\HttpFoundation\File\Exception\AccessDeniedException');
+        if (get_current_user() != 'root' && substr(sprintf('%o', fileperms($path)), -4) == '0333') {
+            $this->setExpectedException('Symfony\Component\HttpFoundation\File\Exception\AccessDeniedException');
             MimeTypeGuesser::getInstance()->guess($path);
         } else {
             $this->markTestSkipped('Can not verify chmod operations, change of file permissions failed');

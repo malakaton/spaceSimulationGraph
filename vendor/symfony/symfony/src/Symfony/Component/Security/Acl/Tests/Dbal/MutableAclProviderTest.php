@@ -11,7 +11,6 @@
 
 namespace Symfony\Component\Security\Acl\Tests\Dbal;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Acl\Domain\RoleSecurityIdentity;
 use Symfony\Component\Security\Acl\Model\FieldEntryInterface;
 use Symfony\Component\Security\Acl\Model\AuditableEntryInterface;
@@ -19,6 +18,8 @@ use Symfony\Component\Security\Acl\Model\EntryInterface;
 use Symfony\Component\Security\Acl\Domain\Entry;
 use Symfony\Component\Security\Acl\Domain\UserSecurityIdentity;
 use Symfony\Component\Security\Acl\Domain\Acl;
+use Symfony\Component\Security\Acl\Exception\AclNotFoundException;
+use Symfony\Component\Security\Acl\Exception\ConcurrentModificationException;
 use Symfony\Component\Security\Acl\Dbal\AclProvider;
 use Symfony\Component\Security\Acl\Domain\PermissionGrantingStrategy;
 use Symfony\Component\Security\Acl\Dbal\MutableAclProvider;
@@ -26,10 +27,7 @@ use Symfony\Component\Security\Acl\Dbal\Schema;
 use Doctrine\DBAL\DriverManager;
 use Symfony\Component\Security\Acl\Domain\ObjectIdentity;
 
-/**
- * @requires extension pdo_sqlite
- */
-class MutableAclProviderTest extends TestCase
+class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
 {
     protected $con;
 
@@ -77,25 +75,23 @@ class MutableAclProviderTest extends TestCase
         $this->assertTrue($acl->getObjectIdentity()->equals($oid));
     }
 
-    /**
-     * @expectedException \Symfony\Component\Security\Acl\Exception\AclNotFoundException
-     */
     public function testDeleteAcl()
     {
         $provider = $this->getProvider();
         $oid = new ObjectIdentity(1, 'Foo');
-        $provider->createAcl($oid);
+        $acl = $provider->createAcl($oid);
 
         $provider->deleteAcl($oid);
         $loadedAcls = $this->getField($provider, 'loadedAcls');
         $this->assertCount(0, $loadedAcls['Foo']);
 
-        $provider->findAcl($oid);
+        try {
+            $provider->findAcl($oid);
+            $this->fail('ACL has not been properly deleted.');
+        } catch (AclNotFoundException $notFound) {
+        }
     }
 
-    /**
-     * @expectedException \Symfony\Component\Security\Acl\Exception\AclNotFoundException
-     */
     public function testDeleteAclDeletesChildren()
     {
         $provider = $this->getProvider();
@@ -105,7 +101,11 @@ class MutableAclProviderTest extends TestCase
         $provider->updateAcl($acl);
         $provider->deleteAcl($parentAcl->getObjectIdentity());
 
-        $provider->findAcl(new ObjectIdentity(1, 'Foo'));
+        try {
+            $provider->findAcl(new ObjectIdentity(1, 'Foo'));
+            $this->fail('Child-ACLs have not been deleted.');
+        } catch (AclNotFoundException $notFound) {
+        }
     }
 
     public function testFindAclsAddsPropertyListener()
@@ -252,7 +252,7 @@ class MutableAclProviderTest extends TestCase
 
     public function testUpdateDoesNothingWhenThereAreNoChanges()
     {
-        $con = $this->getMockBuilder('Doctrine\DBAL\Connection')->disableOriginalConstructor()->getMock();
+        $con = $this->getMock('Doctrine\DBAL\Connection', array(), array(), '', false);
         $con
             ->expects($this->never())
             ->method('beginTransaction')
@@ -269,9 +269,6 @@ class MutableAclProviderTest extends TestCase
         $provider->updateAcl($acl);
     }
 
-    /**
-     * @expectedException \Symfony\Component\Security\Acl\Exception\ConcurrentModificationException
-     */
     public function testUpdateAclThrowsExceptionOnConcurrentModificationOfSharedProperties()
     {
         $provider = $this->getProvider();
@@ -290,7 +287,11 @@ class MutableAclProviderTest extends TestCase
 
         $acl1->insertClassAce($sid, 3);
         $acl2->insertClassAce($sid, 5);
-        $provider->updateAcl($acl1);
+        try {
+            $provider->updateAcl($acl1);
+            $this->fail('Provider failed to detect a concurrent modification.');
+        } catch (ConcurrentModificationException $ex) {
+        }
     }
 
     public function testUpdateAcl()
@@ -361,7 +362,7 @@ class MutableAclProviderTest extends TestCase
         $this->assertEquals($newParentParentAcl->getId(), $reloadedAcl->getParentAcl()->getParentAcl()->getId());
     }
 
-    public function testUpdateAclInsertingMultipleObjectFieldAcesDoesNotThrowDBConstraintViolations()
+    public function testUpdateAclInsertingMultipleObjectFieldAcesThrowsDBConstraintViolations()
     {
         $provider = $this->getProvider();
         $oid = new ObjectIdentity(1, 'Foo');
@@ -381,11 +382,9 @@ class MutableAclProviderTest extends TestCase
         $acl = $provider->findAcl($oid);
         $acl->insertObjectFieldAce($fieldName, $sid3, 4);
         $provider->updateAcl($acl);
-
-        $this->assertCount(3, $provider->findAcl($oid)->getObjectFieldAces($fieldName));
     }
 
-    public function testUpdateAclDeletingObjectFieldAcesDoesNotThrowDBConstraintViolations()
+    public function testUpdateAclDeletingObjectFieldAcesThrowsDBConstraintViolations()
     {
         $provider = $this->getProvider();
         $oid = new ObjectIdentity(1, 'Foo');
@@ -409,8 +408,6 @@ class MutableAclProviderTest extends TestCase
         $acl = $provider->findAcl($oid);
         $acl->insertObjectFieldAce($fieldName, $sid3, 4);
         $provider->updateAcl($acl);
-
-        $this->assertCount(2, $provider->findAcl($oid)->getObjectFieldAces($fieldName));
     }
 
     public function testUpdateUserSecurityIdentity()
@@ -516,6 +513,10 @@ class MutableAclProviderTest extends TestCase
 
     protected function setUp()
     {
+        if (!class_exists('PDO') || !in_array('sqlite', \PDO::getAvailableDrivers())) {
+            self::markTestSkipped('This test requires SQLite support in your environment');
+        }
+
         $this->con = DriverManager::getConnection(array(
             'driver' => 'pdo_sqlite',
             'memory' => true,

@@ -11,32 +11,27 @@
 
 namespace Symfony\Component\Form\Tests\Extension\Core\Type;
 
+use Symfony\Component\Form\Test\TypeTestCase as TestCase;
 use Symfony\Component\Form\ChoiceList\View\ChoiceView;
 use Symfony\Component\Intl\Util\IntlTestHelper;
 
-class LocaleTypeTest extends BaseTypeTest
+class LocaleTypeTest extends TestCase
 {
-    const TESTED_TYPE = 'locale';
-
     protected function setUp()
     {
-        IntlTestHelper::requireIntl($this, false);
+        IntlTestHelper::requireIntl($this);
 
         parent::setUp();
     }
 
     public function testLocalesAreSelectable()
     {
-        $choices = $this->factory->create(static::TESTED_TYPE)
-            ->createView()->vars['choices'];
+        $form = $this->factory->create('locale');
+        $view = $form->createView();
+        $choices = $view->vars['choices'];
 
-        $this->assertContains(new ChoiceView('en', 'en', 'English'), $choices, '', false, false);
-        $this->assertContains(new ChoiceView('en_GB', 'en_GB', 'English (United Kingdom)'), $choices, '', false, false);
-        $this->assertContains(new ChoiceView('zh_Hant_MO', 'zh_Hant_MO', 'Chinese (Traditional, Macau SAR China)'), $choices, '', false, false);
-    }
-
-    public function testSubmitNull($expected = null, $norm = null, $view = null)
-    {
-        parent::testSubmitNull($expected, $norm, '');
+        $this->assertContains(new ChoiceView('English', 'en', 'en'), $choices, '', false, false);
+        $this->assertContains(new ChoiceView('English (United Kingdom)', 'en_GB', 'en_GB'), $choices, '', false, false);
+        $this->assertContains(new ChoiceView('Chinese (Traditional, Macau SAR China)', 'zh_Hant_MO', 'zh_Hant_MO'), $choices, '', false, false);
     }
 }

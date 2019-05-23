@@ -11,7 +11,7 @@
 
 namespace Symfony\Component\Validator;
 
-@trigger_error('The '.__NAMESPACE__.'\ExecutionContext class is deprecated since version 2.5 and will be removed in 3.0. Use the Symfony\Component\Validator\Context\ExecutionContext class instead.', E_USER_DEPRECATED);
+trigger_error('The '.__NAMESPACE__.'\ExecutionContext class is deprecated since version 2.5 and will be removed in 3.0. Use the Symfony\Component\Validator\Context\ExecutionContext class instead.', E_USER_DEPRECATED);
 
 use Symfony\Component\Translation\TranslatorInterface;
 
@@ -66,13 +66,13 @@ class ExecutionContext implements ExecutionContextInterface
     /**
      * Creates a new execution context.
      *
-     * @param GlobalExecutionContextInterface $globalContext     The global context storing node-independent state
-     * @param TranslatorInterface             $translator        The translator for translating violation messages
-     * @param null|string                     $translationDomain The domain of the validation messages
-     * @param MetadataInterface               $metadata          The metadata of the validated node
-     * @param mixed                           $value             The value of the validated node
-     * @param string                          $group             The current validation group
-     * @param string                          $propertyPath      The property path to the current node
+     * @param GlobalExecutionContextInterface $globalContext     The global context storing node-independent state.
+     * @param TranslatorInterface             $translator        The translator for translating violation messages.
+     * @param null|string                     $translationDomain The domain of the validation messages.
+     * @param MetadataInterface               $metadata          The metadata of the validated node.
+     * @param mixed                           $value             The value of the validated node.
+     * @param string                          $group             The current validation group.
+     * @param string                          $propertyPath      The property path to the current node.
      */
     public function __construct(GlobalExecutionContextInterface $globalContext, TranslatorInterface $translator, $translationDomain = null, MetadataInterface $metadata = null, $value = null, $group = null, $propertyPath = '')
     {
@@ -266,8 +266,8 @@ class ExecutionContext implements ExecutionContextInterface
     /**
      * Executes the validators of the given constraints for the given value.
      *
-     * @param mixed        $value       The value to validate
-     * @param Constraint[] $constraints The constraints to match against
+     * @param mixed        $value       The value to validate.
+     * @param Constraint[] $constraints The constraints to match against.
      */
     private function executeConstraintValidators($value, array $constraints)
     {
@@ -286,7 +286,7 @@ class ExecutionContext implements ExecutionContextInterface
      *                                     is passed, an array containing the current
      *                                     group of the context is returned.
      *
-     * @return array An array of validation groups
+     * @return array An array of validation groups.
      */
     private function resolveGroups($groups)
     {

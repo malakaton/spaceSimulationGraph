@@ -21,7 +21,6 @@ use Symfony\Component\Security\Core\Authentication\RememberMe\PersistentToken;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Util\SecureRandomInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Security\Core\Util\StringUtils;
 
 /**
  * Concrete implementation of the RememberMeServicesInterface which needs
@@ -45,7 +44,7 @@ class PersistentTokenBasedRememberMeServices extends AbstractRememberMeServices
      * @param LoggerInterface       $logger
      * @param SecureRandomInterface $secureRandom
      */
-    public function __construct(array $userProviders, $key, $providerKey, array $options, LoggerInterface $logger = null, SecureRandomInterface $secureRandom)
+    public function __construct(array $userProviders, $key, $providerKey, array $options = array(), LoggerInterface $logger = null, SecureRandomInterface $secureRandom)
     {
         parent::__construct($userProviders, $key, $providerKey, $options, $logger);
 
@@ -91,7 +90,7 @@ class PersistentTokenBasedRememberMeServices extends AbstractRememberMeServices
         list($series, $tokenValue) = $cookieParts;
         $persistentToken = $this->tokenProvider->loadTokenBySeries($series);
 
-        if (!StringUtils::equals($persistentToken->getTokenValue(), $tokenValue)) {
+        if ($persistentToken->getTokenValue() !== $tokenValue) {
             throw new CookieTheftException('This token was already used. The account is possibly compromised.');
         }
 

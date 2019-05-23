@@ -34,7 +34,7 @@ class YamlLintCommand extends Command
             ->setDescription('Lints a file and outputs encountered errors')
             ->addArgument('filename', null, 'A file or a directory or STDIN')
             ->addOption('format', null, InputOption::VALUE_REQUIRED, 'The output format', 'txt')
-            ->setHelp(<<<'EOF'
+            ->setHelp(<<<EOF
 The <info>%command.name%</info> command lints a YAML file and outputs to STDOUT
 the first encountered syntax error.
 
@@ -85,6 +85,7 @@ EOF
             throw new \RuntimeException(sprintf('File or directory "%s" is not readable', $filename));
         }
 
+        $files = array();
         if (is_file($filename)) {
             $files = array($filename);
         } elseif (is_dir($filename)) {
@@ -104,9 +105,9 @@ EOF
 
     private function validate($content, $file = null)
     {
-        $parser = new Parser();
+        $this->parser = new Parser();
         try {
-            $parser->parse($content);
+            $this->parser->parse($content);
         } catch (ParseException $e) {
             return array('file' => $file, 'valid' => false, 'message' => $e->getMessage());
         }
@@ -134,7 +135,7 @@ EOF
             if ($info['valid'] && $output->isVerbose()) {
                 $output->writeln('<info>OK</info>'.($info['file'] ? sprintf(' in %s', $info['file']) : ''));
             } elseif (!$info['valid']) {
-                ++$errors;
+                $errors++;
                 $output->writeln(sprintf('<error>KO</error> in %s', $info['file']));
                 $output->writeln(sprintf('<error>>> %s</error>', $info['message']));
             }
@@ -152,11 +153,11 @@ EOF
         array_walk($filesInfo, function (&$v) use (&$errors) {
             $v['file'] = (string) $v['file'];
             if (!$v['valid']) {
-                ++$errors;
+                $errors++;
             }
         });
 
-        $output->writeln(json_encode($filesInfo, defined('JSON_PRETTY_PRINT') ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : 0));
+        $output->writeln(json_encode($filesInfo, defined('JSON_PRETTY_PRINT') ? JSON_PRETTY_PRINT : 0));
 
         return min($errors, 1);
     }

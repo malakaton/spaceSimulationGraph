@@ -42,12 +42,12 @@ class TokenBasedRememberMeServices extends AbstractRememberMeServices
         }
         try {
             $user = $this->getUserProvider($class)->loadUserByUsername($username);
-        } catch (\Exception $e) {
-            if (!$e instanceof AuthenticationException) {
-                $e = new AuthenticationException($e->getMessage(), $e->getCode(), $e);
+        } catch (\Exception $ex) {
+            if (!$ex instanceof AuthenticationException) {
+                $ex = new AuthenticationException($ex->getMessage(), $ex->getCode(), $ex);
             }
 
-            throw $e;
+            throw $ex;
         }
 
         if (!$user instanceof UserInterface) {

@@ -14,8 +14,6 @@ namespace Symfony\Bundle\TwigBundle\Extension;
 use Symfony\Bundle\TwigBundle\TokenParser\RenderTokenParser;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Fragment\FragmentHandler;
-use Twig\Extension\AbstractExtension;
-use Twig\TokenParser\AbstractTokenParser;
 
 /**
  * Twig extension for Symfony actions helper.
@@ -24,7 +22,7 @@ use Twig\TokenParser\AbstractTokenParser;
  *
  * @deprecated since version 2.2, to be removed in 3.0.
  */
-class ActionsExtension extends AbstractExtension
+class ActionsExtension extends \Twig_Extension
 {
     private $handler;
 
@@ -38,7 +36,7 @@ class ActionsExtension extends AbstractExtension
         if ($handler instanceof FragmentHandler) {
             $this->handler = $handler;
         } elseif ($handler instanceof ContainerInterface) {
-            @trigger_error('The ability to pass a ContainerInterface instance as a first argument to '.__METHOD__.' method is deprecated since version 2.7 and will be removed in 3.0. Pass a FragmentHandler instance instead.', E_USER_DEPRECATED);
+            trigger_error('The ability to pass a ContainerInterface instance as a first argument to '.__METHOD__.' method is deprecated since version 2.7 and will be removed in 3.0. Pass a FragmentHandler instance instead.', E_USER_DEPRECATED);
 
             $this->handler = $handler->get('fragment.handler');
         } else {
@@ -54,13 +52,11 @@ class ActionsExtension extends AbstractExtension
      * @param string $uri     A URI
      * @param array  $options An array of options
      *
-     * @return string|null The Response content or null when the Response is streamed
-     *
      * @see FragmentHandler::render()
      */
     public function renderUri($uri, array $options = array())
     {
-        @trigger_error('The Twig render tag was deprecated in version 2.2 and will be removed in version 3.0. Use the Twig render function instead.', E_USER_DEPRECATED);
+        trigger_error('The Twig render tag was deprecated in version 2.2 and will be removed in version 3.0. Use the Twig render function instead.', E_USER_DEPRECATED);
 
         $strategy = isset($options['strategy']) ? $options['strategy'] : 'inline';
         unset($options['strategy']);
@@ -71,7 +67,7 @@ class ActionsExtension extends AbstractExtension
     /**
      * Returns the token parser instance to add to the existing list.
      *
-     * @return AbstractTokenParser[]
+     * @return array An array of \Twig_TokenParser instances
      */
     public function getTokenParsers()
     {

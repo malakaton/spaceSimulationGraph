@@ -58,8 +58,8 @@ abstract class AbstractPreAuthenticatedListener implements ListenerInterface
 
         try {
             list($user, $credentials) = $this->getPreAuthenticatedData($request);
-        } catch (BadCredentialsException $e) {
-            $this->clearToken($e);
+        } catch (BadCredentialsException $exception) {
+            $this->clearToken($exception);
 
             return;
         }
@@ -90,8 +90,8 @@ abstract class AbstractPreAuthenticatedListener implements ListenerInterface
                 $loginEvent = new InteractiveLoginEvent($request, $token);
                 $this->dispatcher->dispatch(SecurityEvents::INTERACTIVE_LOGIN, $loginEvent);
             }
-        } catch (AuthenticationException $e) {
-            $this->clearToken($e);
+        } catch (AuthenticationException $failed) {
+            $this->clearToken($failed);
         }
     }
 

@@ -11,32 +11,27 @@
 
 namespace Symfony\Component\Form\Tests\Extension\Core\Type;
 
+use Symfony\Component\Form\Test\TypeTestCase as TestCase;
 use Symfony\Component\Form\ChoiceList\View\ChoiceView;
 use Symfony\Component\Intl\Util\IntlTestHelper;
 
-class CurrencyTypeTest extends BaseTypeTest
+class CurrencyTypeTest extends TestCase
 {
-    const TESTED_TYPE = 'currency';
-
     protected function setUp()
     {
-        IntlTestHelper::requireIntl($this, false);
+        IntlTestHelper::requireIntl($this);
 
         parent::setUp();
     }
 
     public function testCurrenciesAreSelectable()
     {
-        $choices = $this->factory->create(static::TESTED_TYPE)
-            ->createView()->vars['choices'];
+        $form = $this->factory->create('currency');
+        $view = $form->createView();
+        $choices = $view->vars['choices'];
 
-        $this->assertContains(new ChoiceView('EUR', 'EUR', 'Euro'), $choices, '', false, false);
-        $this->assertContains(new ChoiceView('USD', 'USD', 'US Dollar'), $choices, '', false, false);
-        $this->assertContains(new ChoiceView('SIT', 'SIT', 'Slovenian Tolar'), $choices, '', false, false);
-    }
-
-    public function testSubmitNull($expected = null, $norm = null, $view = null)
-    {
-        parent::testSubmitNull($expected, $norm, '');
+        $this->assertContains(new ChoiceView('Euro', 'EUR', 'EUR'), $choices, '', false, false);
+        $this->assertContains(new ChoiceView('US Dollar', 'USD', 'USD'), $choices, '', false, false);
+        $this->assertContains(new ChoiceView('Slovenian Tolar', 'SIT', 'SIT'), $choices, '', false, false);
     }
 }

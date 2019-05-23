@@ -146,13 +146,6 @@ class FormType extends BaseType
             };
         };
 
-        // Wrap "post_max_size_message" in a closure to translate it lazily
-        $uploadMaxSizeMessage = function (Options $options) {
-            return function () use ($options) {
-                return $options['post_max_size_message'];
-            };
-        };
-
         // For any form that is not represented by a single HTML control,
         // errors should bubble up by default
         $errorBubbling = function (Options $options) {
@@ -162,7 +155,7 @@ class FormType extends BaseType
         // BC with old "virtual" option
         $inheritData = function (Options $options) {
             if (null !== $options['virtual']) {
-                @trigger_error('The form option "virtual" is deprecated since version 2.3 and will be removed in 3.0. Use "inherit_data" instead.', E_USER_DEPRECATED);
+                trigger_error('The form option "virtual" is deprecated since version 2.3 and will be removed in 3.0. Use "inherit_data" instead.', E_USER_DEPRECATED);
 
                 return $options['virtual'];
             }
@@ -214,11 +207,9 @@ class FormType extends BaseType
             'action' => '',
             'attr' => $defaultAttr,
             'post_max_size_message' => 'The uploaded file was too large. Please try to upload a smaller file.',
-            'upload_max_size_message' => $uploadMaxSizeMessage, // internal
         ));
 
         $resolver->setAllowedTypes('label_attr', 'array');
-        $resolver->setAllowedTypes('upload_max_size_message', array('callable'));
     }
 
     /**

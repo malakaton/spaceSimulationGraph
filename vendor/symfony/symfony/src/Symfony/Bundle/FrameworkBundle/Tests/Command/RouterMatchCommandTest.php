@@ -11,7 +11,6 @@
 
 namespace Symfony\Bundle\FrameworkBundle\Tests\Command;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Bundle\FrameworkBundle\Command\RouterMatchCommand;
@@ -20,12 +19,12 @@ use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\Routing\RequestContext;
 
-class RouterMatchCommandTest extends TestCase
+class RouterMatchCommandTest extends \PHPUnit_Framework_TestCase
 {
     public function testWithMatchPath()
     {
         $tester = $this->createCommandTester();
-        $ret = $tester->execute(array('path_info' => '/foo', 'foo'), array('decorated' => false));
+        $ret = $tester->execute(array('path_info' => '/foo', 'foo'));
 
         $this->assertEquals(0, $ret, 'Returns 0 in case of success');
         $this->assertContains('[router] Route "foo"', $tester->getDisplay());
@@ -34,7 +33,7 @@ class RouterMatchCommandTest extends TestCase
     public function testWithNotMatchPath()
     {
         $tester = $this->createCommandTester();
-        $ret = $tester->execute(array('path_info' => '/test', 'foo'), array('decorated' => false));
+        $ret = $tester->execute(array('path_info' => '/test', 'foo'));
 
         $this->assertEquals(1, $ret, 'Returns 1 in case of failure');
         $this->assertContains('None of the routes match the path "/test"', $tester->getDisplay());
@@ -63,7 +62,7 @@ class RouterMatchCommandTest extends TestCase
         $routeCollection = new RouteCollection();
         $routeCollection->add('foo', new Route('foo'));
         $requestContext = new RequestContext();
-        $router = $this->getMockBuilder('Symfony\Component\Routing\RouterInterface')->getMock();
+        $router = $this->getMock('Symfony\Component\Routing\RouterInterface');
         $router
             ->expects($this->any())
             ->method('getRouteCollection')
@@ -76,10 +75,10 @@ class RouterMatchCommandTest extends TestCase
         ;
 
         $loader = $this->getMockBuilder('Symfony\Bundle\FrameworkBundle\Routing\DelegatingLoader')
-            ->disableOriginalConstructor()
-            ->getMock();
+             ->disableOriginalConstructor()
+             ->getMock();
 
-        $container = $this->getMockBuilder('Symfony\Component\DependencyInjection\ContainerInterface')->getMock();
+        $container = $this->getMock('Symfony\Component\DependencyInjection\ContainerInterface');
         $container
             ->expects($this->once())
             ->method('has')
@@ -89,6 +88,7 @@ class RouterMatchCommandTest extends TestCase
             ->will($this->returnValueMap(array(
                 array('router', 1, $router),
                 array('controller_name_converter', 1, $loader),
+
             )));
 
         return $container;

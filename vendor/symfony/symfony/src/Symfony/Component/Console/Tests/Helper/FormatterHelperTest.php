@@ -11,10 +11,9 @@
 
 namespace Symfony\Component\Console\Tests\Helper;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Helper\FormatterHelper;
 
-class FormatterHelperTest extends TestCase
+class FormatterHelperTest extends \PHPUnit_Framework_TestCase
 {
     public function testFormatSection()
     {
@@ -53,11 +52,12 @@ class FormatterHelperTest extends TestCase
         );
     }
 
-    /**
-     * @requires extension mbstring
-     */
     public function testFormatBlockWithDiacriticLetters()
     {
+        if (!function_exists('mb_detect_encoding')) {
+            $this->markTestSkipped('This test requires mbstring to work.');
+        }
+
         $formatter = new FormatterHelper();
 
         $this->assertEquals(
@@ -69,11 +69,11 @@ class FormatterHelperTest extends TestCase
         );
     }
 
-    /**
-     * @requires extension mbstring
-     */
     public function testFormatBlockWithDoubleWidthDiacriticLetters()
     {
+        if (!extension_loaded('mbstring')) {
+            $this->markTestSkipped('This test requires mbstring to work.');
+        }
         $formatter = new FormatterHelper();
         $this->assertEquals(
             '<error>                    </error>'."\n".

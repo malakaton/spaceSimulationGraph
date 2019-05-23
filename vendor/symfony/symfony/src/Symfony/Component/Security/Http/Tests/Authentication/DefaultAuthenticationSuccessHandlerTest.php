@@ -11,11 +11,9 @@
 
 namespace Symfony\Component\Security\Http\Tests\Authentication;
 
-use PHPUnit\Framework\TestCase;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Http\Authentication\DefaultAuthenticationSuccessHandler;
 
-class DefaultAuthenticationSuccessHandlerTest extends TestCase
+class DefaultAuthenticationSuccessHandlerTest extends \PHPUnit_Framework_TestCase
 {
     private $httpUtils = null;
 
@@ -25,10 +23,10 @@ class DefaultAuthenticationSuccessHandlerTest extends TestCase
 
     protected function setUp()
     {
-        $this->httpUtils = $this->getMockBuilder('Symfony\Component\Security\Http\HttpUtils')->getMock();
-        $this->request = $this->getMockBuilder('Symfony\Component\HttpFoundation\Request')->getMock();
-        $this->request->headers = $this->getMockBuilder('Symfony\Component\HttpFoundation\HeaderBag')->getMock();
-        $this->token = $this->getMockBuilder('Symfony\Component\Security\Core\Authentication\Token\TokenInterface')->getMock();
+        $this->httpUtils = $this->getMock('Symfony\Component\Security\Http\HttpUtils');
+        $this->request = $this->getMock('Symfony\Component\HttpFoundation\Request');
+        $this->request->headers = $this->getMock('Symfony\Component\HttpFoundation\HeaderBag');
+        $this->token = $this->getMock('Symfony\Component\Security\Core\Authentication\Token\TokenInterface');
     }
 
     public function testRequestIsRedirected()
@@ -88,7 +86,7 @@ class DefaultAuthenticationSuccessHandlerTest extends TestCase
 
     public function testTargetPathIsTakenFromTheSession()
     {
-        $session = $this->getMockBuilder('Symfony\Component\HttpFoundation\Session\SessionInterface')->getMock();
+        $session = $this->getMock('Symfony\Component\HttpFoundation\Session\SessionInterface');
         $session->expects($this->once())
             ->method('get')->with('_security.admin.target_path')
             ->will($this->returnValue('/admin/dashboard'));
@@ -159,7 +157,8 @@ class DefaultAuthenticationSuccessHandlerTest extends TestCase
 
     private function expectRedirectResponse($path)
     {
-        $response = new Response();
+        $response = $this->getMock('Symfony\Component\HttpFoundation\Response');
+
         $this->httpUtils->expects($this->once())
             ->method('createRedirectResponse')
             ->with($this->request, $path)

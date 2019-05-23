@@ -11,15 +11,12 @@
 
 namespace Symfony\Bridge\Twig\Extension;
 
-use Twig\Extension\AbstractExtension;
-use Twig\TwigFilter;
-
 /**
  * Twig extension relate to PHP code and used by the profiler and the default exception templates.
  *
  * @author Fabien Potencier <fabien@symfony.com>
  */
-class CodeExtension extends AbstractExtension
+class CodeExtension extends \Twig_Extension
 {
     private $fileLinkFormat;
     private $rootDir;
@@ -35,7 +32,7 @@ class CodeExtension extends AbstractExtension
     public function __construct($fileLinkFormat, $rootDir, $charset)
     {
         $this->fileLinkFormat = $fileLinkFormat ?: ini_get('xdebug.file_link_format') ?: get_cfg_var('xdebug.file_link_format');
-        $this->rootDir = str_replace('/', DIRECTORY_SEPARATOR, dirname($rootDir)).DIRECTORY_SEPARATOR;
+        $this->rootDir = str_replace('\\', '/', dirname($rootDir)).'/';
         $this->charset = $charset;
     }
 
@@ -45,14 +42,14 @@ class CodeExtension extends AbstractExtension
     public function getFilters()
     {
         return array(
-            new TwigFilter('abbr_class', array($this, 'abbrClass'), array('is_safe' => array('html'))),
-            new TwigFilter('abbr_method', array($this, 'abbrMethod'), array('is_safe' => array('html'))),
-            new TwigFilter('format_args', array($this, 'formatArgs'), array('is_safe' => array('html'))),
-            new TwigFilter('format_args_as_text', array($this, 'formatArgsAsText')),
-            new TwigFilter('file_excerpt', array($this, 'fileExcerpt'), array('is_safe' => array('html'))),
-            new TwigFilter('format_file', array($this, 'formatFile'), array('is_safe' => array('html'))),
-            new TwigFilter('format_file_from_text', array($this, 'formatFileFromText'), array('is_safe' => array('html'))),
-            new TwigFilter('file_link', array($this, 'getFileLink')),
+            new \Twig_SimpleFilter('abbr_class', array($this, 'abbrClass'), array('is_safe' => array('html'))),
+            new \Twig_SimpleFilter('abbr_method', array($this, 'abbrMethod'), array('is_safe' => array('html'))),
+            new \Twig_SimpleFilter('format_args', array($this, 'formatArgs'), array('is_safe' => array('html'))),
+            new \Twig_SimpleFilter('format_args_as_text', array($this, 'formatArgsAsText')),
+            new \Twig_SimpleFilter('file_excerpt', array($this, 'fileExcerpt'), array('is_safe' => array('html'))),
+            new \Twig_SimpleFilter('format_file', array($this, 'formatFile'), array('is_safe' => array('html'))),
+            new \Twig_SimpleFilter('format_file_from_text', array($this, 'formatFileFromText'), array('is_safe' => array('html'))),
+            new \Twig_SimpleFilter('file_link', array($this, 'getFileLink')),
         );
     }
 
@@ -141,7 +138,7 @@ class CodeExtension extends AbstractExtension
             $code = @highlight_file($file, true);
             // remove main code/span tags
             $code = preg_replace('#^<code.*?>\s*<span.*?>(.*)</span>\s*</code>#s', '\\1', $code);
-            $content = explode('<br />', $code);
+            $content = preg_split('#<br />#', $code);
 
             $lines = array();
             for ($i = max($line - 3, 1), $max = min($line + 3, count($content)); $i <= $max; ++$i) {
@@ -166,18 +163,18 @@ class CodeExtension extends AbstractExtension
         $file = trim($file);
 
         if (null === $text) {
-            $text = str_replace('/', DIRECTORY_SEPARATOR, $file);
+            $text = str_replace('\\', '/', $file);
             if (0 === strpos($text, $this->rootDir)) {
                 $text = substr($text, strlen($this->rootDir));
-                $text = explode(DIRECTORY_SEPARATOR, $text, 2);
-                $text = sprintf('<abbr title="%s%2$s">%s</abbr>%s', $this->rootDir, $text[0], isset($text[1]) ? DIRECTORY_SEPARATOR.$text[1] : '');
+                $text = explode('/', $text, 2);
+                $text = sprintf('<abbr title="%s%2$s">%s</abbr>%s', $this->rootDir, $text[0], isset($text[1]) ? '/'.$text[1] : '');
             }
         }
 
         $text = "$text at line $line";
 
         if (false !== $link = $this->getFileLink($file, $line)) {
-            if (\PHP_VERSION_ID >= 50400) {
+            if (PHP_VERSION_ID >= 50400) {
                 $flags = ENT_QUOTES | ENT_SUBSTITUTE;
             } else {
                 $flags = ENT_QUOTES;

@@ -51,12 +51,13 @@ class DateTimeToArrayTransformer extends BaseDateTimeTransformer
     /**
      * Transforms a normalized date into a localized date.
      *
-     * @param \DateTime|\DateTimeInterface $dateTime A DateTime object
+     * @param \DateTime $dateTime Normalized date.
      *
-     * @return array Localized date
+     * @return array Localized date.
      *
      * @throws TransformationFailedException If the given value is not an
-     *                                       instance of \DateTime or \DateTimeInterface
+     *                                       instance of \DateTime or if the
+     *                                       output timezone is not supported.
      */
     public function transform($dateTime)
     {
@@ -71,16 +72,17 @@ class DateTimeToArrayTransformer extends BaseDateTimeTransformer
             ), array_flip($this->fields));
         }
 
-        if (!$dateTime instanceof \DateTime && !$dateTime instanceof \DateTimeInterface) {
-            throw new TransformationFailedException('Expected a \DateTime or \DateTimeInterface.');
+        if (!$dateTime instanceof \DateTime) {
+            throw new TransformationFailedException('Expected a \DateTime.');
         }
 
+        $dateTime = clone $dateTime;
         if ($this->inputTimezone !== $this->outputTimezone) {
-            if (!$dateTime instanceof \DateTimeImmutable) {
-                $dateTime = clone $dateTime;
+            try {
+                $dateTime->setTimezone(new \DateTimeZone($this->outputTimezone));
+            } catch (\Exception $e) {
+                throw new TransformationFailedException($e->getMessage(), $e->getCode(), $e);
             }
-
-            $dateTime = $dateTime->setTimezone(new \DateTimeZone($this->outputTimezone));
         }
 
         $result = array_intersect_key(array(
@@ -113,6 +115,8 @@ class DateTimeToArrayTransformer extends BaseDateTimeTransformer
      *
      * @throws TransformationFailedException If the given value is not an array,
      *                                       if the value could not be transformed
+     *                                       or if the input timezone is not
+     *                                       supported.
      */
     public function reverseTransform($value)
     {
@@ -172,16 +176,15 @@ class DateTimeToArrayTransformer extends BaseDateTimeTransformer
 
         try {
             $dateTime = new \DateTime(sprintf(
-                '%s-%s-%s %s:%s:%s',
+                '%s-%s-%s %s:%s:%s %s',
                 empty($value['year']) ? '1970' : $value['year'],
                 empty($value['month']) ? '1' : $value['month'],
                 empty($value['day']) ? '1' : $value['day'],
                 empty($value['hour']) ? '0' : $value['hour'],
                 empty($value['minute']) ? '0' : $value['minute'],
-                empty($value['second']) ? '0' : $value['second']
-                ),
-                new \DateTimeZone($this->outputTimezone)
-            );
+                empty($value['second']) ? '0' : $value['second'],
+                $this->outputTimezone
+            ));
 
             if ($this->inputTimezone !== $this->outputTimezone) {
                 $dateTime->setTimezone(new \DateTimeZone($this->inputTimezone));

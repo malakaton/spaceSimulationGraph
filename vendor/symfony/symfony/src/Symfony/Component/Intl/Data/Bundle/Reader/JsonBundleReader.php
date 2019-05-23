@@ -63,7 +63,7 @@ class JsonBundleReader implements BundleReaderInterface
     /**
      * @return string The last error message created by {@link json_decode()}
      *
-     * @see http://de2.php.net/manual/en/function.json-last-error-msg.php#113243
+     * @link http://de2.php.net/manual/en/function.json-last-error-msg.php#113243
      */
     private static function getLastJsonError()
     {

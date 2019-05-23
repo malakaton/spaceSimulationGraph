@@ -11,15 +11,13 @@
 
 namespace Symfony\Bridge\Twig\Tests\Extension;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\Twig\Extension\AssetExtension;
 use Symfony\Component\Asset\Package;
 use Symfony\Component\Asset\Packages;
 use Symfony\Component\Asset\PathPackage;
-use Symfony\Component\Asset\VersionStrategy\EmptyVersionStrategy;
 use Symfony\Component\Asset\VersionStrategy\StaticVersionStrategy;
 
-class AssetExtensionTest extends TestCase
+class AssetExtensionTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @group legacy
@@ -41,16 +39,6 @@ class AssetExtensionTest extends TestCase
         $extension = $this->createExtension(new PathPackage('foo', new StaticVersionStrategy('22', '%s?version=%s')));
 
         $this->assertEquals('/foo/me.png?version=42', $extension->getAssetUrl('me.png', null, false, 42));
-    }
-
-    /**
-     * @group legacy
-     */
-    public function testGetAssetUrlWithEmptyVersionStrategy()
-    {
-        $extension = $this->createExtension(new PathPackage('foo', new EmptyVersionStrategy()));
-
-        $this->assertEquals('/foo/me.png?42', $extension->getAssetUrl('me.png', null, false, 42));
     }
 
     private function createExtension(Package $package)

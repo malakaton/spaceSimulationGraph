@@ -23,6 +23,7 @@ use Symfony\Component\Config\Resource\DirectoryResource;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\Validator\Validation;
 
 /**
  * FrameworkExtension.
@@ -38,11 +39,6 @@ class FrameworkExtension extends Extension
     private $sessionConfigEnabled = false;
 
     /**
-     * @var string|null
-     */
-    private $kernelRootHash;
-
-    /**
      * Responds to the app.config configuration parameter.
      *
      * @param array            $configs
@@ -52,7 +48,7 @@ class FrameworkExtension extends Extension
      */
     public function load(array $configs, ContainerBuilder $container)
     {
-        $loader = new XmlFileLoader($container, new FileLocator(dirname(__DIR__).'/Resources/config'));
+        $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
 
         $loader->load('web.xml');
         $loader->load('services.xml');
@@ -143,8 +139,6 @@ class FrameworkExtension extends Extension
         }
 
         if ($container->getParameter('kernel.debug')) {
-            $definition->replaceArgument(2, -1 & ~(E_COMPILE_ERROR | E_PARSE | E_ERROR | E_CORE_ERROR | E_RECOVERABLE_ERROR));
-
             $loader->load('debug.xml');
 
             $definition = $container->findDefinition('http_kernel');
@@ -156,7 +150,7 @@ class FrameworkExtension extends Extension
             $container->setDefinition('debug.event_dispatcher.parent', $definition);
             $container->setAlias('event_dispatcher', 'debug.event_dispatcher');
         } else {
-            $definition->replaceArgument(1, null);
+            $definition->replaceArgument(2, E_COMPILE_ERROR | E_PARSE | E_ERROR | E_CORE_ERROR);
         }
 
         $this->addClassesToCompile(array(
@@ -367,7 +361,7 @@ class FrameworkExtension extends Extension
         $loader->load('routing.xml');
 
         $container->setParameter('router.resource', $config['resource']);
-        $container->setParameter('router.cache_class_prefix', $container->getParameter('kernel.container_class'));
+        $container->setParameter('router.cache_class_prefix', $container->getParameter('kernel.name').ucfirst($container->getParameter('kernel.environment')));
         $router = $container->findDefinition('router.default');
         $argument = $router->getArgument(2);
         $argument['strict_requirements'] = $config['strict_requirements'];
@@ -402,7 +396,7 @@ class FrameworkExtension extends Extension
         // session storage
         $container->setAlias('session.storage', $config['storage_id']);
         $options = array();
-        foreach (array('name', 'cookie_lifetime', 'cookie_path', 'cookie_domain', 'cookie_secure', 'cookie_httponly', 'gc_maxlifetime', 'gc_probability', 'gc_divisor', 'use_strict_mode') as $key) {
+        foreach (array('name', 'cookie_lifetime', 'cookie_path', 'cookie_domain', 'cookie_secure', 'cookie_httponly', 'gc_maxlifetime', 'gc_probability', 'gc_divisor') as $key) {
             if (isset($config[$key])) {
                 $options[$key] = $config[$key];
             }
@@ -450,7 +444,7 @@ class FrameworkExtension extends Extension
     /**
      * Loads the request configuration.
      *
-     * @param array            $config    A request configuration array
+     * @param array            $config    A session configuration array
      * @param ContainerBuilder $container A ContainerBuilder instance
      * @param XmlFileLoader    $loader    An XmlFileLoader instance
      */
@@ -477,17 +471,14 @@ class FrameworkExtension extends Extension
     {
         $loader->load('templating.xml');
 
-        if (!$container->hasParameter('templating.helper.code.file_link_format')) {
-            $links = array(
-                'textmate' => 'txmt://open?url=file://%%f&line=%%l',
-                'macvim' => 'mvim://open?url=file://%%f&line=%%l',
-                'emacs' => 'emacs://open?url=file://%%f&line=%%l',
-                'sublime' => 'subl://open?url=file://%%f&line=%%l',
-            );
+        $links = array(
+            'textmate' => 'txmt://open?url=file://%%f&line=%%l',
+            'macvim' => 'mvim://open?url=file://%%f&line=%%l',
+            'emacs' => 'emacs://open?url=file://%%f&line=%%l',
+            'sublime' => 'subl://open?url=file://%%f&line=%%l',
+        );
 
-            $container->setParameter('templating.helper.code.file_link_format', str_replace('%', '%%', ini_get('xdebug.file_link_format') ?: get_cfg_var('xdebug.file_link_format')) ?: (isset($links[$ide]) ? $links[$ide] : $ide));
-        }
-
+        $container->setParameter('templating.helper.code.file_link_format', isset($links[$ide]) ? $links[$ide] : $ide);
         $container->setParameter('fragment.renderer.hinclude.global_template', $config['hinclude_default_template']);
 
         if ($container->getParameter('kernel.debug')) {
@@ -593,7 +584,7 @@ class FrameworkExtension extends Extension
 
         $namedPackages = array();
         foreach ($config['packages'] as $name => $package) {
-            if (!array_key_exists('version', $package)) {
+            if (null === $package['version']) {
                 $version = $defaultVersion;
             } else {
                 $format = $package['version_format'] ?: $config['version_format'];
@@ -619,14 +610,23 @@ class FrameworkExtension extends Extension
             throw new \LogicException('An asset package cannot have base URLs and base paths.');
         }
 
-        $package = new DefinitionDecorator($baseUrls ? 'assets.url_package' : 'assets.path_package');
-        $package
+        if (!$baseUrls) {
+            $package = new DefinitionDecorator('assets.path_package');
+
+            return $package
+                ->setPublic(false)
+                ->replaceArgument(0, $basePath)
+                ->replaceArgument(1, $version)
+            ;
+        }
+
+        $package = new DefinitionDecorator('assets.url_package');
+
+        return $package
             ->setPublic(false)
-            ->replaceArgument(0, $baseUrls ?: $basePath)
+            ->replaceArgument(0, $baseUrls)
             ->replaceArgument(1, $version)
         ;
-
-        return $package;
     }
 
     private function createVersion(ContainerBuilder $container, $version, $format, $name)
@@ -670,28 +670,29 @@ class FrameworkExtension extends Extension
         if (class_exists('Symfony\Component\Validator\Validation')) {
             $r = new \ReflectionClass('Symfony\Component\Validator\Validation');
 
-            $dirs[] = dirname($r->getFileName()).'/Resources/translations';
+            $dirs[] = dirname($r->getFilename()).'/Resources/translations';
         }
         if (class_exists('Symfony\Component\Form\Form')) {
             $r = new \ReflectionClass('Symfony\Component\Form\Form');
 
-            $dirs[] = dirname($r->getFileName()).'/Resources/translations';
+            $dirs[] = dirname($r->getFilename()).'/Resources/translations';
         }
         if (class_exists('Symfony\Component\Security\Core\Exception\AuthenticationException')) {
             $r = new \ReflectionClass('Symfony\Component\Security\Core\Exception\AuthenticationException');
 
-            $dirs[] = dirname(dirname($r->getFileName())).'/Resources/translations';
+            $dirs[] = dirname($r->getFilename()).'/../Resources/translations';
         }
-        $rootDir = $container->getParameter('kernel.root_dir');
-        foreach ($container->getParameter('kernel.bundles_metadata') as $name => $bundle) {
-            if (is_dir($dir = $bundle['path'].'/Resources/translations')) {
+        $overridePath = $container->getParameter('kernel.root_dir').'/Resources/%s/translations';
+        foreach ($container->getParameter('kernel.bundles') as $bundle => $class) {
+            $reflection = new \ReflectionClass($class);
+            if (is_dir($dir = dirname($reflection->getFilename()).'/Resources/translations')) {
                 $dirs[] = $dir;
             }
-            if (is_dir($dir = $rootDir.sprintf('/Resources/%s/translations', $name))) {
+            if (is_dir($dir = sprintf($overridePath, $bundle))) {
                 $dirs[] = $dir;
             }
         }
-        if (is_dir($dir = $rootDir.'/Resources/translations')) {
+        if (is_dir($dir = $container->getParameter('kernel.root_dir').'/Resources/translations')) {
             $dirs[] = $dir;
         }
 
@@ -710,8 +711,9 @@ class FrameworkExtension extends Extension
                 ->in($dirs)
             ;
 
+            $locales = array();
             foreach ($finder as $file) {
-                list(, $locale) = explode('.', $file->getBasename(), 3);
+                list($domain, $locale, $format) = explode('.', $file->getBasename(), 3);
                 if (!isset($files[$locale])) {
                     $files[$locale] = array();
                 }
@@ -739,10 +741,6 @@ class FrameworkExtension extends Extension
     {
         if (!$this->isConfigEnabled($container, $config)) {
             return;
-        }
-
-        if (!class_exists('Symfony\Component\Validator\Validation')) {
-            throw new LogicException('Validation support cannot be enabled as the Validator component is not installed.');
         }
 
         $loader->load('validator.xml');
@@ -776,7 +774,7 @@ class FrameworkExtension extends Extension
         if (isset($config['cache'])) {
             $container->setParameter(
                 'validator.mapping.cache.prefix',
-                'validator_'.$this->getKernelRootHash($container)
+                'validator_'.hash('sha256', $container->getParameter('kernel.root_dir'))
             );
 
             $validatorBuilder->addMethodCall('setMetadataCache', array(new Reference($config['cache'])));
@@ -799,24 +797,27 @@ class FrameworkExtension extends Extension
             $container->addResource(new FileResource($files[0][0]));
         }
 
-        foreach ($container->getParameter('kernel.bundles_metadata') as $bundle) {
-            $dirname = $bundle['path'];
+        $bundles = $container->getParameter('kernel.bundles');
+        foreach ($bundles as $bundle) {
+            $reflection = new \ReflectionClass($bundle);
+            $dirname = dirname($reflection->getFilename());
+
             if (is_file($file = $dirname.'/Resources/config/validation.xml')) {
-                $files[0][] = $file;
+                $files[0][] = realpath($file);
                 $container->addResource(new FileResource($file));
             }
 
             if (is_file($file = $dirname.'/Resources/config/validation.yml')) {
-                $files[1][] = $file;
+                $files[1][] = realpath($file);
                 $container->addResource(new FileResource($file));
             }
 
             if (is_dir($dir = $dirname.'/Resources/config/validation')) {
                 foreach (Finder::create()->files()->in($dir)->name('*.xml') as $file) {
-                    $files[0][] = $file->getPathname();
+                    $files[0][] = $file->getRealpath();
                 }
                 foreach (Finder::create()->files()->in($dir)->name('*.yml') as $file) {
-                    $files[1][] = $file->getPathname();
+                    $files[1][] = $file->getRealpath();
                 }
 
                 $container->addResource(new DirectoryResource($dir));
@@ -911,11 +912,13 @@ class FrameworkExtension extends Extension
             $serializerLoaders[] = $annotationLoader;
         }
 
-        foreach ($container->getParameter('kernel.bundles_metadata') as $bundle) {
-            $dirname = $bundle['path'];
+        $bundles = $container->getParameter('kernel.bundles');
+        foreach ($bundles as $bundle) {
+            $reflection = new \ReflectionClass($bundle);
+            $dirname = dirname($reflection->getFilename());
 
             if (is_file($file = $dirname.'/Resources/config/serialization.xml')) {
-                $definition = new Definition('Symfony\Component\Serializer\Mapping\Loader\XmlFileLoader', array($file));
+                $definition = new Definition('Symfony\Component\Serializer\Mapping\Loader\XmlFileLoader', array(realpath($file)));
                 $definition->setPublic(false);
 
                 $serializerLoaders[] = $definition;
@@ -923,7 +926,7 @@ class FrameworkExtension extends Extension
             }
 
             if (is_file($file = $dirname.'/Resources/config/serialization.yml')) {
-                $definition = new Definition('Symfony\Component\Serializer\Mapping\Loader\YamlFileLoader', array($file));
+                $definition = new Definition('Symfony\Component\Serializer\Mapping\Loader\YamlFileLoader', array(realpath($file)));
                 $definition->setPublic(false);
 
                 $serializerLoaders[] = $definition;
@@ -932,13 +935,13 @@ class FrameworkExtension extends Extension
 
             if (is_dir($dir = $dirname.'/Resources/config/serialization')) {
                 foreach (Finder::create()->files()->in($dir)->name('*.xml') as $file) {
-                    $definition = new Definition('Symfony\Component\Serializer\Mapping\Loader\XmlFileLoader', array($file->getPathname()));
+                    $definition = new Definition('Symfony\Component\Serializer\Mapping\Loader\XmlFileLoader', array($file->getRealpath()));
                     $definition->setPublic(false);
 
                     $serializerLoaders[] = $definition;
                 }
                 foreach (Finder::create()->files()->in($dir)->name('*.yml') as $file) {
-                    $definition = new Definition('Symfony\Component\Serializer\Mapping\Loader\YamlFileLoader', array($file->getPathname()));
+                    $definition = new Definition('Symfony\Component\Serializer\Mapping\Loader\YamlFileLoader', array($file->getRealpath()));
                     $definition->setPublic(false);
 
                     $serializerLoaders[] = $definition;
@@ -953,7 +956,7 @@ class FrameworkExtension extends Extension
         if (isset($config['cache']) && $config['cache']) {
             $container->setParameter(
                 'serializer.mapping.cache.prefix',
-                'serializer_'.$this->getKernelRootHash($container)
+                'serializer_'.hash('sha256', $container->getParameter('kernel.root_dir'))
             );
 
             $container->getDefinition('serializer.mapping.class_metadata_factory')->replaceArgument(
@@ -963,29 +966,13 @@ class FrameworkExtension extends Extension
     }
 
     /**
-     * Gets a hash of the kernel root directory.
-     *
-     * @param ContainerBuilder $container
-     *
-     * @return string
-     */
-    private function getKernelRootHash(ContainerBuilder $container)
-    {
-        if (!$this->kernelRootHash) {
-            $this->kernelRootHash = hash('sha256', $container->getParameter('kernel.root_dir'));
-        }
-
-        return $this->kernelRootHash;
-    }
-
-    /**
      * Returns the base path for the XSD files.
      *
      * @return string The XSD base path
      */
     public function getXsdValidationBasePath()
     {
-        return dirname(__DIR__).'/Resources/config/schema';
+        return __DIR__.'/../Resources/config/schema';
     }
 
     public function getNamespace()

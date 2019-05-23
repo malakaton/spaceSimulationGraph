@@ -62,31 +62,7 @@ class CachingFactoryDecorator implements ChoiceListFactoryInterface
             });
         }
 
-        return hash('sha256', $namespace.':'.serialize($value));
-    }
-
-    /**
-     * Flattens an array into the given output variable.
-     *
-     * @param array $array  The array to flatten
-     * @param array $output The flattened output
-     *
-     * @internal Should not be used by user-land code
-     */
-    private static function flatten(array $array, &$output)
-    {
-        if (null === $output) {
-            $output = array();
-        }
-
-        foreach ($array as $key => $value) {
-            if (is_array($value)) {
-                self::flatten($value, $output);
-                continue;
-            }
-
-            $output[$key] = $value;
-        }
+        return hash('sha256', $namespace.':'.json_encode($value));
     }
 
     /**
@@ -124,7 +100,7 @@ class CachingFactoryDecorator implements ChoiceListFactoryInterface
         // We ignore the choice groups for caching. If two choice lists are
         // requested with the same choices, but a different grouping, the same
         // choice list is returned.
-        self::flatten($choices, $flatChoices);
+        DefaultChoiceListFactory::flatten($choices, $flatChoices);
 
         $hash = self::generateHash(array($flatChoices, $value), 'fromChoices');
 
@@ -141,7 +117,7 @@ class CachingFactoryDecorator implements ChoiceListFactoryInterface
      * @deprecated Added for backwards compatibility in Symfony 2.7, to be
      *             removed in Symfony 3.0.
      */
-    public function createListFromFlippedChoices($choices, $value = null, $triggerDeprecationNotice = true)
+    public function createListFromFlippedChoices($choices, $value = null)
     {
         if ($choices instanceof \Traversable) {
             $choices = iterator_to_array($choices);
@@ -153,12 +129,12 @@ class CachingFactoryDecorator implements ChoiceListFactoryInterface
         // We ignore the choice groups for caching. If two choice lists are
         // requested with the same choices, but a different grouping, the same
         // choice list is returned.
-        self::flatten($choices, $flatChoices);
+        DefaultChoiceListFactory::flattenFlipped($choices, $flatChoices);
 
         $hash = self::generateHash(array($flatChoices, $value), 'fromFlippedChoices');
 
         if (!isset($this->lists[$hash])) {
-            $this->lists[$hash] = $this->decoratedFactory->createListFromFlippedChoices($choices, $value, $triggerDeprecationNotice);
+            $this->lists[$hash] = $this->decoratedFactory->createListFromFlippedChoices($choices, $value);
         }
 
         return $this->lists[$hash];
@@ -185,6 +161,7 @@ class CachingFactoryDecorator implements ChoiceListFactoryInterface
     {
         // The input is not validated on purpose. This way, the decorated
         // factory may decide which input to accept and which not.
+
         $hash = self::generateHash(array($list, $preferredChoices, $label, $index, $groupBy, $attr));
 
         if (!isset($this->views[$hash])) {

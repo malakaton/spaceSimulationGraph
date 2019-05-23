@@ -36,7 +36,7 @@ final class UserSecurityIdentity implements SecurityIdentityInterface
      */
     public function __construct($username, $class)
     {
-        if ('' === $username || null === $username) {
+        if (empty($username)) {
             throw new \InvalidArgumentException('$username must not be empty.');
         }
         if (empty($class)) {
@@ -52,7 +52,7 @@ final class UserSecurityIdentity implements SecurityIdentityInterface
      *
      * @param UserInterface $user
      *
-     * @return self
+     * @return UserSecurityIdentity
      */
     public static function fromAccount(UserInterface $user)
     {
@@ -64,7 +64,7 @@ final class UserSecurityIdentity implements SecurityIdentityInterface
      *
      * @param TokenInterface $token
      *
-     * @return self
+     * @return UserSecurityIdentity
      */
     public static function fromToken(TokenInterface $token)
     {

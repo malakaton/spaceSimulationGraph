@@ -11,7 +11,7 @@
 
 namespace Symfony\Component\Validator;
 
-@trigger_error('The '.__NAMESPACE__.'\Validator class is deprecated since version 2.5 and will be removed in 3.0. Use the Symfony\Component\Validator\Validator\RecursiveValidator class instead.', E_USER_DEPRECATED);
+trigger_error('The '.__NAMESPACE__.'\Validator class is deprecated since version 2.5 and will be removed in 3.0. Use the Symfony\Component\Validator\Validator\RecursiveValidator class instead.', E_USER_DEPRECATED);
 
 use Symfony\Component\Translation\TranslatorInterface;
 use Symfony\Component\Validator\Constraints\Valid;
@@ -151,7 +151,7 @@ class Validator implements ValidatorInterface, Mapping\Factory\MetadataFactoryIn
                 ? '"'.$containingValue.'"'
                 : 'the value of type '.gettype($containingValue);
 
-            throw new ValidatorException(sprintf('The metadata for %s does not support properties.', $valueAsString));
+            throw new ValidatorException(sprintf('The metadata for '.$valueAsString.' does not support properties.'));
         }
 
         // If $containingValue is passed as class name, take $value as root

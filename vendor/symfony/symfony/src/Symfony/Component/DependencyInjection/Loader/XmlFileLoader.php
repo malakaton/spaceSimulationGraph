@@ -49,7 +49,7 @@ class XmlFileLoader extends FileLoader
         $this->parseImports($xml, $path);
 
         // parameters
-        $this->parseParameters($xml);
+        $this->parseParameters($xml, $path);
 
         // extensions
         $this->loadFromExtensions($xml);
@@ -70,8 +70,9 @@ class XmlFileLoader extends FileLoader
      * Parses parameters.
      *
      * @param \DOMDocument $xml
+     * @param string       $file
      */
-    private function parseParameters(\DOMDocument $xml)
+    private function parseParameters(\DOMDocument $xml, $file)
     {
         if ($parameters = $this->getChildren($xml->documentElement, 'parameters')) {
             $this->container->getParameterBag()->add($this->getArgumentsAsPhp($parameters[0], 'parameter'));
@@ -93,9 +94,8 @@ class XmlFileLoader extends FileLoader
             return;
         }
 
-        $defaultDirectory = dirname($file);
         foreach ($imports as $import) {
-            $this->setCurrentDir($defaultDirectory);
+            $this->setCurrentDir(dirname($file));
             $this->import($import->getAttribute('resource'), null, (bool) XmlUtils::phpize($import->getAttribute('ignore-errors')), $file);
         }
     }
@@ -126,11 +126,10 @@ class XmlFileLoader extends FileLoader
      * Parses an individual Definition.
      *
      * @param \DOMElement $service
-     * @param string      $file
      *
      * @return Definition|null
      */
-    private function parseDefinition(\DOMElement $service, $file)
+    private function parseDefinition(\DOMElement $service)
     {
         if ($alias = $service->getAttribute('alias')) {
             $public = true;
@@ -150,22 +149,13 @@ class XmlFileLoader extends FileLoader
 
         foreach (array('class', 'scope', 'public', 'factory-class', 'factory-method', 'factory-service', 'synthetic', 'lazy', 'abstract') as $key) {
             if ($value = $service->getAttribute($key)) {
-                if (in_array($key, array('factory-class', 'factory-method', 'factory-service'))) {
-                    @trigger_error(sprintf('The "%s" attribute of service "%s" in file "%s" is deprecated since version 2.6 and will be removed in 3.0. Use the "factory" element instead.', $key, (string) $service->getAttribute('id'), $file), E_USER_DEPRECATED);
-                }
                 $method = 'set'.str_replace('-', '', $key);
                 $definition->$method(XmlUtils::phpize($value));
             }
         }
 
         if ($value = $service->getAttribute('synchronized')) {
-            $triggerDeprecation = 'request' !== (string) $service->getAttribute('id');
-
-            if ($triggerDeprecation) {
-                @trigger_error(sprintf('The "synchronized" attribute of service "%s" in file "%s" is deprecated since version 2.7 and will be removed in 3.0.', (string) $service->getAttribute('id'), $file), E_USER_DEPRECATED);
-            }
-
-            $definition->setSynchronized(XmlUtils::phpize($value), $triggerDeprecation);
+            $definition->setSynchronized(XmlUtils::phpize($value), 'request' !== (string) $service->getAttribute('id'));
         }
 
         if ($files = $this->getChildren($service, 'file')) {
@@ -183,7 +173,7 @@ class XmlFileLoader extends FileLoader
                 $factoryService = $this->getChildren($factory, 'service');
 
                 if (isset($factoryService[0])) {
-                    $class = $this->parseDefinition($factoryService[0], $file);
+                    $class = $this->parseDefinition($factoryService[0]);
                 } elseif ($childService = $factory->getAttribute('service')) {
                     $class = new Reference($childService, ContainerInterface::EXCEPTION_ON_INVALID_REFERENCE, false);
                 } else {
@@ -202,7 +192,7 @@ class XmlFileLoader extends FileLoader
                 $configuratorService = $this->getChildren($configurator, 'service');
 
                 if (isset($configuratorService[0])) {
-                    $class = $this->parseDefinition($configuratorService[0], $file);
+                    $class = $this->parseDefinition($configuratorService[0]);
                 } elseif ($childService = $configurator->getAttribute('service')) {
                     $class = new Reference($childService, ContainerInterface::EXCEPTION_ON_INVALID_REFERENCE, false);
                 } else {
@@ -231,10 +221,6 @@ class XmlFileLoader extends FileLoader
                 $parameters[$name] = XmlUtils::phpize($node->nodeValue);
             }
 
-            if ('' === $tag->getAttribute('name')) {
-                throw new InvalidArgumentException(sprintf('The tag name for service "%s" in %s must be a non-empty string.', (string) $service->getAttribute('id'), $file));
-            }
-
             $definition->addTag($tag->getAttribute('name'), $parameters);
         }
 
@@ -247,7 +233,7 @@ class XmlFileLoader extends FileLoader
     }
 
     /**
-     * Parses a XML file to a \DOMDocument.
+     * Parses a XML file to a \DOMDocument
      *
      * @param string $file Path to a file
      *
@@ -292,10 +278,6 @@ class XmlFileLoader extends FileLoader
                 if ($services = $this->getChildren($node, 'service')) {
                     $definitions[$id] = array($services[0], $file, false);
                     $services[0]->setAttribute('id', $id);
-
-                    // anonymous services are always private
-                    // we could not use the constant false here, because of XML parsing
-                    $services[0]->setAttribute('public', 'false');
                 }
             }
         }
@@ -306,7 +288,11 @@ class XmlFileLoader extends FileLoader
                 // give it a unique name
                 $id = sprintf('%s_%d', hash('sha256', $file), ++$count);
                 $node->setAttribute('id', $id);
-                $definitions[$id] = array($node, $file, true);
+
+                if ($services = $this->getChildren($node, 'service')) {
+                    $definitions[$id] = array($node, $file, true);
+                    $services[0]->setAttribute('id', $id);
+                }
             }
         }
 
@@ -314,6 +300,10 @@ class XmlFileLoader extends FileLoader
         krsort($definitions);
         foreach ($definitions as $id => $def) {
             list($domElement, $file, $wild) = $def;
+
+            // anonymous services are always private
+            // we could not use the constant false here, because of XML parsing
+            $domElement->setAttribute('public', 'false');
 
             if (null !== $definition = $this->parseDefinition($domElement, $file)) {
                 $this->container->setDefinition($id, $definition);
@@ -346,22 +336,21 @@ class XmlFileLoader extends FileLoader
                 $arg->setAttribute('key', $arg->getAttribute('name'));
             }
 
+            if (!$arg->hasAttribute('key')) {
+                $key = !$arguments ? 0 : max(array_keys($arguments)) + 1;
+            } else {
+                $key = $arg->getAttribute('key');
+            }
+
+            // parameter keys are case insensitive
+            if ('parameter' == $name && $lowercase) {
+                $key = strtolower($key);
+            }
+
             // this is used by DefinitionDecorator to overwrite a specific
             // argument of the parent definition
             if ($arg->hasAttribute('index')) {
                 $key = 'index_'.$arg->getAttribute('index');
-            } elseif (!$arg->hasAttribute('key')) {
-                // Append an empty argument, then fetch its key to overwrite it later
-                $arguments[] = null;
-                $keys = array_keys($arguments);
-                $key = array_pop($keys);
-            } else {
-                $key = $arg->getAttribute('key');
-
-                // parameter keys are case insensitive
-                if ('parameter' == $name && $lowercase) {
-                    $key = strtolower($key);
-                }
             }
 
             switch ($arg->getAttribute('type')) {
@@ -392,7 +381,7 @@ class XmlFileLoader extends FileLoader
                     $arguments[$key] = $arg->nodeValue;
                     break;
                 case 'constant':
-                    $arguments[$key] = constant(trim($arg->nodeValue));
+                    $arguments[$key] = constant($arg->nodeValue);
                     break;
                 default:
                     $arguments[$key] = XmlUtils::phpize($arg->nodeValue);
@@ -403,7 +392,7 @@ class XmlFileLoader extends FileLoader
     }
 
     /**
-     * Get child elements by name.
+     * Get child elements by name
      *
      * @param \DOMNode $node
      * @param mixed    $name
@@ -485,9 +474,7 @@ $imports
 EOF
         ;
 
-        $disableEntities = libxml_disable_entity_loader(false);
         $valid = @$dom->schemaValidateSource($source);
-        libxml_disable_entity_loader($disableEntities);
 
         foreach ($tmpfiles as $tmpfile) {
             @unlink($tmpfile);
@@ -565,7 +552,7 @@ EOF
      *
      * @return array A PHP array
      */
-    public static function convertDomElementToArray(\DOMElement $element)
+    public static function convertDomElementToArray(\DomElement $element)
     {
         return XmlUtils::convertDomElementToArray($element);
     }

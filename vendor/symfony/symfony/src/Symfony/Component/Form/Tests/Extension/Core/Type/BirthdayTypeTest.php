@@ -14,17 +14,20 @@ namespace Symfony\Component\Form\Tests\Extension\Core\Type;
 /**
  * @author Stepan Anchugov <kixxx1@gmail.com>
  */
-class BirthdayTypeTest extends DateTypeTest
+class BirthdayTypeTest extends BaseTypeTest
 {
-    const TESTED_TYPE = 'birthday';
-
     /**
      * @expectedException \Symfony\Component\OptionsResolver\Exception\InvalidOptionsException
      */
     public function testSetInvalidYearsOption()
     {
-        $this->factory->create(static::TESTED_TYPE, null, array(
+        $this->factory->create('birthday', null, array(
             'years' => 'bad value',
         ));
+    }
+
+    protected function getTestedType()
+    {
+        return 'birthday';
     }
 }
